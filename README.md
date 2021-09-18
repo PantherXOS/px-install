@@ -34,11 +34,11 @@ All Options
 ```bash
 px-install --type DESKTOP \
 	--firmware EFI \
-	--hostname panther
-	--timezone Europe/Berlin
-	--locale en_US.utf8
-	--username panther
-	--password pantherx
+	--hostname panther \
+	--timezone Europe/Berlin \
+	--locale en_US.utf8 \
+	--username panther \
+	--password pantherx \
 	--disk /dev/sda
 ```
 

@@ -10,6 +10,7 @@ class SystemConfiguration():
     locale: str
     username: str
     password: str
+    public_key: str
     disk: str
 
 

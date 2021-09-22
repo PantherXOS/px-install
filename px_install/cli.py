@@ -36,6 +36,9 @@ def get_cl_arguments():
     parser.add_argument("-p", "--password", type=str, default='pantherx',
                         help="Specify a user password. Defaults to 'pantherx'"
                         )
+    parser.add_argument("-k", "--key", type=str,
+                        help="Specify a public key to login via SSH. Example: `ssh-ed25519 AA ... 4QydPg franz`"
+                        )
     parser.add_argument("-d", "--disk", type=str, default='/dev/sda',
                         help="Specify the disk to use. Defaults to '/dev/sda'"
                         )
@@ -59,6 +62,10 @@ def get_cl_arguments():
         timezone = e_config.timezone
         locale = e_config.locale
 
+    public_key = 'NONE'
+    if args.key:
+        public_key = args.key
+
     config = SystemConfiguration(
         type=type,
         firmware=firmware,
@@ -67,6 +74,7 @@ def get_cl_arguments():
         locale=locale,
         username=args.username,
         password=args.password,
+        public_key=public_key,
         disk=args.disk
     )
 

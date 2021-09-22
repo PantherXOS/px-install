@@ -8,7 +8,7 @@
   (timezone "<TIMEZONE>")
   (locale "<LOCALE>")
 
-  ;; Boot in EFI mode, assuming /dev/sda is the
+  ;; Boot in EFI mode, assuming <DISK> is the
   ;; target hard disk, and "my-root" is the label of the target
   ;; root file system.
   (bootloader (bootloader-configuration
@@ -21,7 +21,7 @@
                 (mount-point "/")
                 (type "ext4"))
               (file-system
-                (device "/dev/sda1")
+                (device "<PARTITION_ONE>")
                 (mount-point "/boot/efi")
                 (type "vfat")))
               %base-file-systems))

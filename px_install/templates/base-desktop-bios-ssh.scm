@@ -2,6 +2,21 @@
              (gnu system)
              (px system))
 
+(use-service-modules ssh)
+
+(define %ssh-public-key
+  "${PUBLIC_KEY}")
+
+(define %custom-server-services
+  (modify-services %px-server-services
+                   (openssh-service-type
+                     config =>
+                     (openssh-configuration
+                      (inherit config)
+                      (authorized-keys
+                       <ACCENT>(("root" ,(plain-file "authorized_keys"
+                                              %ssh-public-key))))))))
+
 (px-desktop-os
  (operating-system
   (host-name "<HOSTNAME>")

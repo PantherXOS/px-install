@@ -15,7 +15,11 @@ def exit_if_system_config_exists():
 
 def write_system_config(config: 'SystemConfiguration', path: str = '/mnt/etc/system.scm'):
     '''Writes system config to /mnt/etc/system.scm'''
-    template = "templates/base-{}-{}.scm".format(config.type, config.firmware)
+    template = ""
+    if config.public_key == 'NONE':
+        "templates/base-{}-{}.scm".format(config.type, config.firmware)
+    else:
+        "templates/base-{}-{}-ssh.scm".format(config.type, config.firmware)
     system_config_efi = pkg_resources.resource_filename(
         __name__, template
     )
@@ -35,5 +39,10 @@ def write_system_config(config: 'SystemConfiguration', path: str = '/mnt/etc/sys
             '<USER_COMMENT>', "{}'s account".format(config.username)
         )
         updated = updated.replace('<USER_HOME>', config.username)
+        updated = updated.replace('<DISK>', config.disk)
+        updated = updated.replace('<PARTITION_ONE>', "{config.disk}1")
+
+        if config.public_key != 'NONE':
+            updated = updated.replace('<PUBLIC_KEY>', config.public_key)
 
         f_out.write(updated)

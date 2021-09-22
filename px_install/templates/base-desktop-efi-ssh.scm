@@ -2,24 +2,44 @@
              (gnu system)
              (px system))
 
+(use-service-modules ssh)
+
+(define %ssh-public-key
+  "${PUBLIC_KEY}")
+
+(define %custom-server-services
+  (modify-services %px-server-services
+                   (openssh-service-type
+                     config =>
+                     (openssh-configuration
+                      (inherit config)
+                      (authorized-keys
+                       <ACCENT>(("root" ,(plain-file "authorized_keys"
+                                              %ssh-public-key))))))))
+
 (px-desktop-os
  (operating-system
   (host-name "<HOSTNAME>")
   (timezone "<TIMEZONE>")
   (locale "<LOCALE>")
 
-  ;; Boot in "legacy" BIOS mode, assuming <DISK> is the
+  ;; Boot in EFI mode, assuming <DISK> is the
   ;; target hard disk, and "my-root" is the label of the target
   ;; root file system.
   (bootloader (bootloader-configuration
-               (bootloader grub-bootloader)
-               (target "<DISK>")))
+               (bootloader grub-efi-bootloader)
+               (target "/boot/efi")))
        
-  (file-systems (cons (file-system
-                       (device (file-system-label "my-root"))
-                       (mount-point "/")
-                       (type "ext4"))
-                      %base-file-systems))
+  (file-systems (append
+        (list (file-system
+                (device (file-system-label "my-root"))
+                (mount-point "/")
+                (type "ext4"))
+              (file-system
+                (device "<PARTITION_ONE>")
+                (mount-point "/boot/efi")
+                (type "vfat")))
+              %base-file-systems))
 
   (users (cons (user-account
                 (name "<USERNAME>")

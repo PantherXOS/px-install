@@ -39,6 +39,7 @@ px-install --type DESKTOP \
 	--locale en_US.utf8 \
 	--username panther \
 	--password pantherx \
+	--key ssh-ed25519 AA ... 4QydPg franz \
 	--disk /dev/sda
 ```
 
@@ -50,7 +51,7 @@ px install --config abd1uc3z
 
 ### Minimal bash-based replicate
 
-There's a minimal, all-in-one installer bash script in `scripts/install.sh`. It replicates the python application closely.
+There's a minimal, all-in-one installer bash script in `scripts/install.sh`. It replicates the python application closely. Instead of params it asks for each setting.
 
 ## TODO
 

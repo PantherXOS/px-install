@@ -33,7 +33,9 @@ def get_CMD_FORMAT_EFI(disk: str):
         ['sgdisk', '-t 2:8300', disk],
         ['parted', disk, 'set', '1', 'esp', 'on'],
         ['mkfs.fat', '-F32', part1],
-        ['mkfs.ext4', '-L my-root', part2]
+        ['mkfs.ext4', '-L my-root', part2],
+        ['mkdir', '/boot/efi'],
+        ['mount', part1, '/boot/efi']
     ]
     return CMD_FORMAT_EFI
 

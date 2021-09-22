@@ -21,7 +21,7 @@ def get_cl_arguments():
                         choices=['EFI', 'BIOS'],
                         help="Overwrite automatic detection of EFI / BIOS install."
                         )
-    parser.add_argument("-h", "--hostname", type=str, default="panther",
+    parser.add_argument("-hn", "--hostname", type=str, default="panther",
                         help="Specify hostname. Defaults to 'panther'"
                         )
     parser.add_argument("-t", "--timezone", type=str, default="Europe/Berlin",

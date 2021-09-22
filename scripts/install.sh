@@ -247,7 +247,7 @@ function CMD_CREATE_SWAP() {
 function CMD_INSTALL() {
 	guix pull --channels=/mnt/etc/channels.scm --disable-authentication
     hash guix
-    guix system init $CONFIG /mnt
+	guix system init $CONFIG /mnt
 }
 
 function installation() {

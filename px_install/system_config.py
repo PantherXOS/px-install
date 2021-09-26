@@ -2,8 +2,34 @@
 
 import os
 import sys
+
 import pkg_resources
+
 from .classes import SystemConfiguration
+
+
+available = [
+    'base-desktop-bios-ssh.scm',
+    'base-desktop-bios.scm',
+    'base-desktop-efi-ssh.scm',
+    'base-desktop-efi.scm'
+]
+
+
+def get_template_filename(config: SystemConfiguration):
+    base = ""
+    if config.public_key == 'NONE':
+        base = "base-{}-{}.scm".format(config.type, config.firmware)
+    else:
+        base = "base-{}-{}-ssh.scm".format(config.type, config.firmware)
+    return base
+
+
+def matching_template_is_available(config: SystemConfiguration):
+    template = get_template_filename(config)
+    if template not in available:
+        print("Invalid combination: {}. No template is available.".format(template))
+        sys.exit()
 
 
 def exit_if_system_config_exists():
@@ -13,13 +39,12 @@ def exit_if_system_config_exists():
         sys.exit()
 
 
-def write_system_config(config: 'SystemConfiguration', path: str = '/mnt/etc/system.scm'):
+def write_system_config(config: SystemConfiguration, path: str = '/mnt/etc/system.scm'):
     '''Writes system config to /mnt/etc/system.scm'''
-    template = ""
-    if config.public_key == 'NONE':
-        "templates/base-{}-{}.scm".format(config.type, config.firmware)
-    else:
-        "templates/base-{}-{}-ssh.scm".format(config.type, config.firmware)
+    matching_template_is_available(config)
+
+    template_filename = get_template_filename(config)
+    template = "templates/{}".format(template_filename)
     system_config_efi = pkg_resources.resource_filename(
         __name__, template
     )

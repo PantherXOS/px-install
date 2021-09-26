@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 @dataclass
 class SystemConfiguration():
+    '''Configuration used for the installation'''
     type: str
     firmware: str
     hostname: str
@@ -16,6 +17,7 @@ class SystemConfiguration():
 
 @dataclass
 class RemoteConfig():
+    '''Config used for enterprise devices; merges with system configuration and required for device registration'''
     type: str
     timezone: str
     locale: str

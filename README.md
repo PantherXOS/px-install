@@ -5,24 +5,31 @@ Command line options:
 ```
 -t, --type: Installation type ['DESTOP', 'SERVER', 'ENTERPRISE'] (Default: Desktop)
 -f, --firmware: Overwrite automatic detection ['BIOS', 'EFI'] (Default: Automatic)
--h, --hostname: Computer name on the network (Default: panther)
--t, --timezone: Computer time zone (Default: Europe/Berlin)
+-hn, --hostname: Computer name on the network (Default: pantherx-7xkp1)
+-tz, --timezone: Computer time zone (Default: Europe/Berlin)
 -l, --locale: Computer locale (Default: en_US.utf8)
 -u, --username: First user username (Default: panther)
--p, --password: First user password (Default: pantherx) - should be changed later `passwd <USERNAME>`
+-pw, --password: First user password (Default: pantherx) - should be changed later `passwd <USERNAME>`
 -d, --disk: The disk to install to (Default: /dev/sda)
 -c, --config: Overwrites all other options; installs from enterprise config settings
 ```
 
 Defaults:
 
-- 100 MB boot partition
+- EFI: 200 MB boot partition / BIOS: 10 MB boot partition
 - Remaining for data
 - 4GB SWAP file
 
 ## Run
 
-Minimal options:
+Run with prompts:
+
+```bash
+# This will prompt you for all options; No arguments accepted
+px-install run
+```
+
+Run with command line arguments:
 
 ```bash
 # This will install the system with everything set to default
@@ -49,6 +56,8 @@ Enterprise config overwrite (fully automated):
 px install --config abd1uc3z
 ```
 
+Refer to `scripts/README.md` for more on enterprise configuration.
+
 ### Minimal bash-based replicate
 
 There's a minimal, all-in-one installer bash script in `scripts/install.sh`. It replicates the python application closely. Instead of params it asks for each setting.
@@ -62,3 +71,27 @@ cryptsetup luksFormat /dev/sda2
 cryptsetup open --type luks /dev/sda2 my-partition
 mkfs.ext4 -L my-root /dev/mapper/my-partition
 ```
+
+## Use as Library
+
+```
+from px_install import installation
+intallation(config)
+```
+
+The system configuration looks like this:
+
+```
+class SystemConfiguration():
+    type: str
+    firmware: str
+    hostname: str
+    timezone: str
+    locale: str
+    username: str
+    password: str
+    public_key: str
+    disk: str
+```
+
+_TODO: Document Enterprise Config library usage._

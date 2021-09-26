@@ -1,0 +1,4 @@
+[tool.black]
+line-length = 119
+# Maximum number of characters on a single line.
+max-line-length=119

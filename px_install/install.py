@@ -4,6 +4,7 @@ import subprocess
 from .classes import SystemConfiguration
 from .system_config import write_system_config
 from .system_channels import write_system_channels
+from .remote_config import move_enterprice_channels, move_enterprise_system_config
 
 
 def get_CMD_FORMAT_BIOS(disk: str):
@@ -11,22 +12,22 @@ def get_CMD_FORMAT_BIOS(disk: str):
     part1 = "{}1".format(disk)
     part2 = "{}2".format(disk)
 
-    CMD_FORMAT_BIOS = [
+    cmd_format_bios = [
         ['parted', '-s', disk,
-         '-- mklabel', 'msdos', 'mkpart', 'primary', 'fat32', '0%', '200M', 'mkpart', 'primary', '200M', '100%'],
+         '-- mklabel', 'msdos', 'mkpart', 'primary', 'fat32', '0%', '10M', 'mkpart', 'primary', '10M', '100%'],
         ['sgdisk', '-t', '1:ef02', disk],
         ['sgdisk', '-t', '2:8300', disk],
         ['parted', disk, 'set', '1', 'boot', 'on'],
         ['mkfs.ext4', '-L', 'my-root', part2]
     ]
-    return CMD_FORMAT_BIOS
+    return cmd_format_bios
 
 
 def get_CMD_FORMAT_EFI(disk: str):
     '''Expect /dev/sda or similiar'''
     part1 = "{}1".format(disk)
     part2 = "{}2".format(disk)
-    CMD_FORMAT_EFI = [
+    cmd_format_efi = [
         ['parted', '-s', disk,
          '-- mklabel', 'gpt', 'mkpart', 'primary', 'fat32', '0%', '200M', 'mkpart', 'primary', '200M', '100%'],
         ['sgdisk', '-t 1:ef00', disk],
@@ -37,7 +38,7 @@ def get_CMD_FORMAT_EFI(disk: str):
         ['mkdir', '/boot/efi'],
         ['mount', part1, '/boot/efi']
     ]
-    return CMD_FORMAT_EFI
+    return cmd_format_efi
 
 
 CMD_PREP_INSTALL = [
@@ -54,18 +55,19 @@ CMD_CREATE_SWAP = [
 ]
 
 CMD_INSTALL = [
-    ['guix', 'pull', '--channels=/mnt/etc/channels.scm', '--disable-authentication'],
+    ['guix', 'pull', '--channels=/mnt/etc/guix/channels.scm', '--disable-authentication'],
     ['hash', 'guix'],
     ['guix', 'system', 'init', '/mnt/etc/system.scm', '/mnt']
 ]
 
 
-def run_commands(input: list):
-    for command in input:
-        subprocess.run(command)
+def run_commands(commands: list):
+    '''Execute an array of commands'''
+    for command in commands:
+        subprocess.run(command, check=True)
 
 
-def installation(config: 'SystemConfiguration'):
+def installation(config: SystemConfiguration, is_enterprise_config: bool = False):
     firmware = config.firmware
 
     if firmware == 'bios':
@@ -76,8 +78,12 @@ def installation(config: 'SystemConfiguration'):
     run_commands(CMD_PREP_INSTALL)
     run_commands(CMD_CREATE_SWAP)
 
-    write_system_config(config)
-    write_system_channels()
+    if is_enterprise_config:
+        move_enterprise_system_config()
+        move_enterprice_channels()
+    else:
+        write_system_config(config)
+        write_system_channels()
 
     run_commands(CMD_INSTALL)
 

@@ -1,7 +1,11 @@
 # This is a imperfect replication of the python version for easy testing.
 
+read -p "Ttype: 'desktop' or 'server' [desktop]: " TYPE 
+TYPE=${TYPE:-'desktop'}
+echo $TYPE
+
 read -p "Hostname [panther_computer]: " HOSTNAME 
-HOSTNAME=${HOSTNAME:-panther_computer}
+HOSTNAME=${HOSTNAME:-'panther_computer'}
 echo $HOSTNAME
 
 read -p "Timezone [Europe/Berlin]: " TIMEZONE 
@@ -13,7 +17,7 @@ LOCALE=${LOCALE:-'en_US.utf8'}
 echo $LOCALE
 
 read -p "User 1: Username [panther]: " USERNAME 
-USERNAME=${USERNAME:-panther}
+USERNAME=${USERNAME:-'panther'}
 echo $USERNAME
 
 read -p "User 1: Comment [panther's account]: " USER_COMMENT 
@@ -21,7 +25,7 @@ USER_COMMENT=${USER_COMMENT:-"panther's account"}
 echo $USER_COMMENT
 
 read -p "User 1: Password [pantherx]: " USER_PASSWORD 
-USER_PASSWORD=${USER_PASSWORD:-panther_computer}
+USER_PASSWORD=${USER_PASSWORD:-'pantherx'}
 echo $USER_PASSWORD
 
 read -p "root: Public key [ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP7gcLZzs2JiEx2kWCc8lTHOC0Gqpgcudv0QVJ4QydPg franz]: " PUBLIC_KEY 
@@ -40,8 +44,85 @@ echo $disk
 CRYPT='$6$abc'
 
 CONFIG='/mnt/etc/system.scm'
+CHANNELS='/mnt/etc/guix/channels.scm'
 
-function write_system_config_efi() {
+function write_desktop_system_config_efi() {
+	rm $CONFIG
+cat >> $CONFIG <<EOL
+(use-modules (gnu)
+             (gnu system)
+             (px system)
+			 (gnu packages))
+
+(use-service-modules ssh)
+
+(define %ssh-public-key
+  "${PUBLIC_KEY}")
+
+(define %custom-server-services
+  (modify-services %px-desktop-services
+                   (openssh-service-type
+                     config =>
+                     (openssh-configuration
+                      (inherit config)
+                      (authorized-keys
+                       <ACCENT>(("root" ,(plain-file "authorized_keys"
+                                              %ssh-public-key))))))))
+
+(px-desktop-os
+ (operating-system
+  (host-name "${HOSTNAME}")
+  (timezone "${TIMEZONE}")
+  (locale "${LOCALE}")
+
+  (initrd-modules (append (list "virtio_scsi")
+                                %base-initrd-modules))
+
+  ;; Boot in EFI mode, assuming /dev/sda is the
+  ;; target hard disk, and "my-root" is the label of the target
+  ;; root file system.
+  (bootloader (bootloader-configuration
+               (bootloader grub-efi-bootloader)
+               (target "/boot/efi")))
+       
+  (file-systems (append
+        (list (file-system
+                (device (file-system-label "my-root"))
+                (mount-point "/")
+                (type "ext4"))
+              (file-system
+                (device "/dev/sda1")
+                (mount-point "/boot/efi")
+                (type "vfat")))
+              %base-file-systems))
+
+  (users (cons (user-account
+                (name "${USERNAME}")
+                (comment "${USER_COMMENT}")
+                (group "users")
+		        (password (crypt "${USER_PASSWORD}" "${CRYPT}"))
+
+                ;; Adding the account to the "wheel" group
+                ;; makes it a sudoer.  Adding it to "audio"
+                ;; and "video" allows the user to play sound
+                ;; and access the webcam.
+                (supplementary-groups '("wheel"
+                                        "audio" "video"))
+                (home-directory "/home/${USERNAME}"))
+               %base-user-accounts))
+
+  ;; Globally-installed packages.
+  (packages (cons*
+   %px-desktop-packages))
+
+  ;; Services
+  (services (cons*
+    %custom-desktop-services))
+  ))
+EOL
+}
+
+function write_server_system_config_efi() {
 	rm $CONFIG
 cat >> $CONFIG <<EOL
 (use-modules (gnu)
@@ -98,11 +179,8 @@ cat >> $CONFIG <<EOL
 		        (password (crypt "${USER_PASSWORD}" "${CRYPT}"))
 
                 ;; Adding the account to the "wheel" group
-                ;; makes it a sudoer.  Adding it to "audio"
-                ;; and "video" allows the user to play sound
-                ;; and access the webcam.
-                (supplementary-groups '("wheel"
-                                        "audio" "video"))
+                ;; makes it a sudoer.
+                (supplementary-groups '("wheel"))
                 (home-directory "/home/${USERNAME}"))
                %base-user-accounts))
 
@@ -117,7 +195,78 @@ cat >> $CONFIG <<EOL
 EOL
 }
 
-function write_system_config_bios() {
+function write_desktop_system_config_bios() {
+	rm $CONFIG
+cat >> $CONFIG <<EOL
+(use-modules (gnu)
+             (gnu system)
+             (px system)
+			 (gnu packages))
+
+(use-service-modules ssh)
+
+(define %ssh-public-key
+  "${PUBLIC_KEY}")
+
+(define %custom-server-services
+  (modify-services %px-desktop-services
+                   (openssh-service-type
+                     config =>
+                     (openssh-configuration
+                      (inherit config)
+                      (authorized-keys
+                       <ACCENT>(("root" ,(plain-file "authorized_keys"
+                                              %ssh-public-key))))))))
+
+(px-desktop-os
+ (operating-system
+  (host-name "${HOSTNAME}")
+  (timezone "${TIMEZONE}")
+  (locale "${LOCALE}")
+
+  (initrd-modules (append (list "virtio_scsi")
+                                %base-initrd-modules))
+
+  ;; Boot in "legacy" BIOS mode, assuming /dev/sda is the
+  ;; target hard disk, and "my-root" is the label of the target
+  ;; root file system.
+  (bootloader (bootloader-configuration
+               (bootloader grub-bootloader)
+               (target "/dev/sda")))
+       
+  (file-systems (cons (file-system
+                       (device (file-system-label "my-root"))
+                       (mount-point "/")
+                       (type "ext4"))
+                      %base-file-systems))
+
+  (users (cons (user-account
+                (name "${USERNAME}")
+                (comment "${USER_COMMENT}")
+                (group "users")
+		        (password (crypt "${USER_PASSWORD}" "${CRYPT}"))
+
+                ;; Adding the account to the "wheel" group
+                ;; makes it a sudoer.  Adding it to "audio"
+                ;; and "video" allows the user to play sound
+                ;; and access the webcam.
+                (supplementary-groups '("wheel"
+                                        "audio" "video"))
+                (home-directory "/home/${USERNAME}"))
+               %base-user-accounts))
+
+  ;; Globally-installed packages.
+  (packages (cons*
+   %px-desktop-packages))
+
+  ;; Services
+  (services (cons*
+    %custom-server-services))
+  ))
+EOL
+}
+
+function write_server_system_config_bios() {
 	rm $CONFIG
 cat >> $CONFIG <<EOL
 (use-modules (gnu)
@@ -169,11 +318,8 @@ cat >> $CONFIG <<EOL
 		        (password (crypt "${USER_PASSWORD}" "${CRYPT}"))
 
                 ;; Adding the account to the "wheel" group
-                ;; makes it a sudoer.  Adding it to "audio"
-                ;; and "video" allows the user to play sound
-                ;; and access the webcam.
-                (supplementary-groups '("wheel"
-                                        "audio" "video"))
+                ;; makes it a sudoer.
+                (supplementary-groups '("wheel"))
                 (home-directory "/home/${USERNAME}"))
                %base-user-accounts))
 
@@ -189,8 +335,8 @@ EOL
 }
 
 function write_system_channels() {
-	rm /mnt/etc/channels.scm
-cat >> /mnt/etc/channels.scm <<EOL
+	rm $CHANNELS
+cat >> $CHANNELS <<EOL
 ;; PantherX Default Channels
 
 (list (channel
@@ -235,6 +381,7 @@ function CMD_PREP_INSTALL() {
 	mount LABEL=my-root /mnt
     herd start cow-store /mnt
     mkdir /mnt/etc
+	mkdir /mnt/etc/guix
 }
 
 function CMD_CREATE_SWAP() {
@@ -245,7 +392,7 @@ function CMD_CREATE_SWAP() {
 }
 
 function CMD_INSTALL() {
-	guix pull --channels=/mnt/etc/channels.scm --disable-authentication
+	guix pull --channels=$CHANNELS --disable-authentication
     hash guix
 	guix system init $CONFIG /mnt
 }
@@ -259,9 +406,17 @@ function installation() {
 	CMD_PREP_INSTALL
 	CMD_CREATE_SWAP
 	if [ ! -d "/sys/firmware/efi" ]; then
-		write_system_config_bios
+		if [ $TYPE == 'server' ]
+			write_server_system_config_bios
+		else
+			write_desktop_system_config_bios
+		fi
 	else
-		write_system_config_efi
+		if [ $TYPE == 'server' ]
+			write_server_system_config_efi
+		else
+			write_desktop_system_config_efi
+		fi
 	fi
 	sed -i "s/<ACCENT>/\`/" $CONFIG
 	write_system_channels
@@ -270,6 +425,7 @@ function installation() {
 
 echo "FINAL SETTINGS ===="
 echo
+echo "Type: $TYPE"
 echo "Hostname: $HOSTNAME"
 echo "Timezome: $TIMEZONE"
 echo "Locale: $LOCALE"

@@ -15,11 +15,11 @@ def main():
     input_args = get_cl_arguments()
     is_enterprise_config = input_args['is_enterprise_config']
 
-    # exit_if_system_config_exists()
-    # installation(input_args['config'], is_enterprise_config)
+    exit_if_system_config_exists()
+    installation(input_args['config'], is_enterprise_config)
 
-    # if is_enterprise_config:
-    #     cleanup_enterprise_config()
+    if is_enterprise_config:
+        cleanup_enterprise_config()
 
 
 if __name__ == '__main__':

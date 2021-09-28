@@ -44,7 +44,7 @@ def get_CMD_FORMAT_EFI(disk: str):
 CMD_PREP_INSTALL = [
     ['mount', 'LABEL=my-root', '/mnt'],
     ['herd', 'start cow-store', '/mnt'],
-    ['mkdir', '/mnt/etc']
+    ['mkdirs', '/mnt/etc/guix']
 ]
 
 CMD_CREATE_SWAP = [
@@ -87,4 +87,4 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
 
     run_commands(CMD_INSTALL)
 
-    print('You should set a root password and renew your user password after installation.')
+    print('You should set a root password and change your user password after installation.')

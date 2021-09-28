@@ -1,6 +1,6 @@
 # This is a imperfect replication of the python version for easy testing.
 
-read -p "Ttype: 'desktop' or 'server' [desktop]: " TYPE 
+read -p "Type: 'desktop' or 'server' [desktop]: " TYPE 
 TYPE=${TYPE:-'desktop'}
 echo $TYPE
 
@@ -28,9 +28,14 @@ read -p "User 1: Password [pantherx]: " USER_PASSWORD
 USER_PASSWORD=${USER_PASSWORD:-'pantherx'}
 echo $USER_PASSWORD
 
-read -p "root: Public key [ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP7gcLZzs2JiEx2kWCc8lTHOC0Gqpgcudv0QVJ4QydPg franz]: " PUBLIC_KEY 
-PUBLIC_KEY=${PUBLIC_KEY:-'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP7gcLZzs2JiEx2kWCc8lTHOC0Gqpgcudv0QVJ4QydPg franz'}
-echo $PUBLIC_KEY
+PUBLIC_KEY=''
+
+if [ $TYPE == 'server' ]
+then
+	read -p "root: Public key [ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP7gcLZzs2JiEx2kWCc8lTHOC0Gqpgcudv0QVJ4QydPg franz]: " PUBLIC_KEY 
+	PUBLIC_KEY=${PUBLIC_KEY:-'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP7gcLZzs2JiEx2kWCc8lTHOC0Gqpgcudv0QVJ4QydPg franz'}
+	echo $PUBLIC_KEY
+fi
 
 echo
 echo "### Disks ###"
@@ -49,25 +54,15 @@ CHANNELS='/mnt/etc/guix/channels.scm'
 function write_desktop_system_config_efi() {
 	rm $CONFIG
 cat >> $CONFIG <<EOL
+;; PantherX OS Desktop Configuration r2
+;; boot in EFI mode
+;; /etc/system.scm
+
 (use-modules (gnu)
              (gnu system)
              (px system)
-			 (gnu packages))
-
-(use-service-modules ssh)
-
-(define %ssh-public-key
-  "${PUBLIC_KEY}")
-
-(define %custom-server-services
-  (modify-services %px-desktop-services
-                   (openssh-service-type
-                     config =>
-                     (openssh-configuration
-                      (inherit config)
-                      (authorized-keys
-                       <ACCENT>(("root" ,(plain-file "authorized_keys"
-                                              %ssh-public-key))))))))
+             (px system install)
+             (gnu packages))
 
 (px-desktop-os
  (operating-system
@@ -115,35 +110,27 @@ cat >> $CONFIG <<EOL
   (packages (cons*
    %px-desktop-packages))
 
-  ;; Services
+  ;; Globally-activated services.
   (services (cons*
-    %custom-desktop-services))
-  ))
+   %px-desktop-services))))
 EOL
 }
 
 function write_server_system_config_efi() {
 	rm $CONFIG
 cat >> $CONFIG <<EOL
+;; PantherX OS Server Configuration r2
+;; boot in EFI mode
+;; /etc/system.scm
+
 (use-modules (gnu)
              (gnu system)
              (px system)
-			 (gnu packages))
-
-(use-service-modules ssh)
+             (px system install)
+             (gnu packages))
 
 (define %ssh-public-key
   "${PUBLIC_KEY}")
-
-(define %custom-server-services
-  (modify-services %px-server-services
-                   (openssh-service-type
-                     config =>
-                     (openssh-configuration
-                      (inherit config)
-                      (authorized-keys
-                       <ACCENT>(("root" ,(plain-file "authorized_keys"
-                                              %ssh-public-key))))))))
 
 (px-server-os
  (operating-system
@@ -188,35 +175,27 @@ cat >> $CONFIG <<EOL
   (packages (cons*
    %px-server-packages))
 
-  ;; Services
+  ;; Globally-activated services.
   (services (cons*
-    %custom-server-services))
-  ))
+   %px-server-services)))
+
+ #:open-ports '(("tcp" "ssh"))
+ #:authorized-keys <ACCENT>(("root" ,(plain-file "panther.pub" %ssh-public-key))))
 EOL
 }
 
 function write_desktop_system_config_bios() {
 	rm $CONFIG
 cat >> $CONFIG <<EOL
+;; PantherX OS Desktop Configuration r2
+;; boot in "legacy" BIOS mode
+;; /etc/system.scm
+
 (use-modules (gnu)
              (gnu system)
              (px system)
+             (px system install)
 			 (gnu packages))
-
-(use-service-modules ssh)
-
-(define %ssh-public-key
-  "${PUBLIC_KEY}")
-
-(define %custom-server-services
-  (modify-services %px-desktop-services
-                   (openssh-service-type
-                     config =>
-                     (openssh-configuration
-                      (inherit config)
-                      (authorized-keys
-                       <ACCENT>(("root" ,(plain-file "authorized_keys"
-                                              %ssh-public-key))))))))
 
 (px-desktop-os
  (operating-system
@@ -259,35 +238,27 @@ cat >> $CONFIG <<EOL
   (packages (cons*
    %px-desktop-packages))
 
-  ;; Services
+  ;; Globally-activated services.
   (services (cons*
-    %custom-server-services))
-  ))
+   %px-desktop-services))))
 EOL
 }
 
 function write_server_system_config_bios() {
 	rm $CONFIG
 cat >> $CONFIG <<EOL
+;; PantherX OS Server Configuration r2
+;; boot in "legacy" BIOS mode
+;; /etc/system.scm
+
 (use-modules (gnu)
              (gnu system)
              (px system)
+             (px system install)
 			 (gnu packages))
-
-(use-service-modules ssh)
 
 (define %ssh-public-key
   "${PUBLIC_KEY}")
-
-(define %custom-server-services
-  (modify-services %px-server-services
-                   (openssh-service-type
-                     config =>
-                     (openssh-configuration
-                      (inherit config)
-                      (authorized-keys
-                       <ACCENT>(("root" ,(plain-file "authorized_keys"
-                                              %ssh-public-key))))))))
 
 (px-server-os
  (operating-system
@@ -327,10 +298,12 @@ cat >> $CONFIG <<EOL
   (packages (cons*
    %px-server-packages))
 
-  ;; Services
+  ;; Globally-activated services.
   (services (cons*
-    %custom-server-services))
-  ))
+   %px-server-services)))
+
+ #:open-ports '(("tcp" "ssh"))
+ #:authorized-keys <ACCENT>(("root" ,(plain-file "panther.pub" %ssh-public-key))))
 EOL
 }
 
@@ -405,14 +378,17 @@ function installation() {
 	fi
 	CMD_PREP_INSTALL
 	CMD_CREATE_SWAP
-	if [ ! -d "/sys/firmware/efi" ]; then
+	if [ ! -d "/sys/firmware/efi" ]
+	then
 		if [ $TYPE == 'server' ]
+		then
 			write_server_system_config_bios
 		else
 			write_desktop_system_config_bios
 		fi
 	else
 		if [ $TYPE == 'server' ]
+		then
 			write_server_system_config_efi
 		else
 			write_desktop_system_config_efi
@@ -432,7 +408,10 @@ echo "Locale: $LOCALE"
 echo "Username: $USERNAME"
 echo "User comment: $USER_COMMENT"
 echo "User password: $USER_PASSWORD"
-echo "root public key: $PUBLIC_KEY"
+if [ $TYPE == 'server' ]
+then
+	echo "root public key: $PUBLIC_KEY"
+fi
 echo
 echo "... installing to $disk"
 echo
@@ -440,7 +419,6 @@ echo "===================="
 echo
 read -p "Are you sure? (Continue with 'y' or 'Y')" -n 1 -r
 echo
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
+if [[ $REPLY =~ ^[Yy]$ ]]; then
 	installation
 fi

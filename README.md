@@ -95,3 +95,10 @@ class SystemConfiguration():
 ```
 
 _TODO: Document Enterprise Config library usage._
+
+## Misc
+
+Also included in the repository:
+
+1. `guix-on-digitalocean.sh` -> install GNU Guix on DigitalOcean Debian or Ubuntu Droplet
+2. `pantherx-on-digitalocean.sh` -> install PantherX on DigitalOcean Debian or Ubuntu Droplet (need to be reconfigured after reboot)

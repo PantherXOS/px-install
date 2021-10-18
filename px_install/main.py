@@ -12,6 +12,7 @@ def main():
     print('------')
     print('Welcome to PantherX Installation v{}'.format(version))
     print('------')
+
     input_args = get_cl_arguments()
     is_enterprise_config = input_args['is_enterprise_config']
 

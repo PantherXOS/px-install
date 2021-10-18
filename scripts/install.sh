@@ -51,6 +51,8 @@ CRYPT='$6$abc'
 CONFIG='/mnt/etc/system.scm'
 CHANNELS='/mnt/etc/guix/channels.scm'
 
+# TODO: Subtitute disk into config
+
 function write_desktop_system_config_efi() {
 	rm $CONFIG
 cat >> $CONFIG <<EOL

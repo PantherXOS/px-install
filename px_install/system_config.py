@@ -19,9 +19,9 @@ available = [
 def get_template_filename(config: SystemConfiguration):
     base = ""
     if config.public_key == 'NONE':
-        base = "base-{}-{}.scm".format(config.type, config.firmware)
+        base = "base-{}-{}.scm".format(config.type.lower(), config.firmware)
     else:
-        base = "base-{}-{}-ssh.scm".format(config.type, config.firmware)
+        base = "base-{}-{}-ssh.scm".format(config.type.lower(), config.firmware)
     return base
 
 
@@ -71,3 +71,6 @@ def write_system_config(config: SystemConfiguration, path: str = '/mnt/etc/syste
             updated = updated.replace('<PUBLIC_KEY>', config.public_key)
 
         f_out.write(updated)
+
+    f_in.close()
+    f_out.close()

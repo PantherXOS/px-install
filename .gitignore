@@ -141,3 +141,5 @@ cython_debug/
 .vscode
 
 *.tar
+*.tar.gz
+.config.sh

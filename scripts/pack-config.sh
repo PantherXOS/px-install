@@ -15,12 +15,12 @@ read -p "Auth server URL [https://identity.pantherx.org]: " AUTH_SERVER_URL
 AUTH_SERVER_URL=${AUTH_SERVER_URL:-'https://identity.pantherx.org'}
 echo $AUTH_SERVER_URL
 
-read -p "Device security [TPM]: " DEVICE_SECURITY 
-DEVICE_SECURITY=${DEVICE_SECURITY:-'TPM'}
+read -p "Device security [STANDARD]: " DEVICE_SECURITY 
+DEVICE_SECURITY=${DEVICE_SECURITY:-'STANDARD'}
 echo $DEVICE_SECURITY
 
-read -p "Auth server domain [panther.org]: " AUTH_SERVER_DOMAIN 
-AUTH_SERVER_DOMAIN=${AUTH_SERVER_DOMAIN:-'panther.org'}
+read -p "Auth server domain [pantherx.org]: " AUTH_SERVER_DOMAIN 
+AUTH_SERVER_DOMAIN=${AUTH_SERVER_DOMAIN:-'pantherx.org'}
 echo $AUTH_SERVER_DOMAIN
 
 read -p "Device role (PUBLIC|DESKTOP|SERVER|ADMIN_TERMINAL|REGISTRATION_TERMINAL|SELF) [DESKTOP]: " DEVICE_ROLE 
@@ -73,7 +73,7 @@ cat >$TEMP/config.json <<EOL
 	"role":"${DEVICE_ROLE}",
 	"key_security":"${DEVICE_SECURITY}",
 	"domain":"${AUTH_SERVER_DOMAIN}",
-	"host":"${AUTH_SERVER_URL}",
+	"host":"${AUTH_SERVER_URL}"
 }
 EOL
 

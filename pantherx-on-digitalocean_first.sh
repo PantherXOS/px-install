@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# Guix on DigitalOcean
+# PantherX on DigitalOcean
 
 # Test on:
 # - Ubuntu 21.04
 # - Debian 11
 #
-# 1. Create a new Droplet
-# 2. Select Debian 11 and create the Droplet
-# 3. Login with SSH
-# 4. Paste this script into a setup.sh and run it
-# 5. Wait ~10 minutes on a $5 Droplet and login with SSH panther@ip
-# 6. (now on PantherX ...) run guix pull --disable-authentication
-# 7. Update system config to PX-specific
+# 1. Create a new Droplet with Debian 11
+# 2. Login with SSH
+# 3. Paste this script into a setup.sh and run it
+# 4. Wait ~10 minutes on a $5 Droplet
+#
+# If you just want to deploy to the target machine, from your PantherX installation, this is all you need to do.
+# If you want to operate on the target machine directly, you need to run the 2nd script pantherx-on-digitalocean_second.sh
 #
 # Modify below values to suit your needs. Change the password!
 
@@ -25,6 +25,17 @@ USER_COMMENT="panther's account"
 USER_PASSWORD="6a4NQqrp84Y7mj56"
 
 ###### MODIFY END
+
+if [ "$USER_PASSWORD" == "6a4NQqrp84Y7mj56" ]; then
+	echo "######### IMPORTANT #########"
+	echo "You did not modify the default user password. Overwriting ..."
+	USER_PASSWORD=$(openssl rand -base64 24)
+	echo
+	echo "#########"
+	echo $USER_PASSWORD
+	echo "#########"
+	echo
+fi
 
 CONFIG=/etc/bootstrap-config.scm
 CHANNELS=/etc/channels.scm
@@ -144,10 +155,12 @@ EOL
 
 write_server_config
 write_system_channels
+#write_signing_key
 
-guix pull --disable-authentication --channels=/etc/channels.scm
+# guix archive --authorize < /etc/packages.pantherx.org.pub
+# guix pull --disable-authentication --channels=/etc/channels.scm
 
-hash guix
+# hash guix
 
 
 guix system build /etc/bootstrap-config.scm
@@ -162,5 +175,11 @@ mkdir /etc
 cp -r /old-etc/{passwd,group,shadow,gshadow,mtab,guix,bootstrap-config.scm} /etc/
 cp /old-etc/channels.scm /etc/guix/channels.scm
 guix system reconfigure /etc/bootstrap-config.scm
+
+echo "We are done here."
+echo $HOSTNAME
+echo $PUBLIC_IPV4
+echo $NETMASK
+echo $GATEWAY
 
 reboot

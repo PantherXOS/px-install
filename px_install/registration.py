@@ -6,12 +6,13 @@ Write files for registration automation
 '''
 import json
 
-from .classes import RemoteConfig
+from .classes import RemoteConfig, EnhancedJSONEncoder
 
 
-def write_registration_files(config: RemoteConfig):
+def write_registration_files(config: RemoteConfig, path: str = '/mnt/etc'):
     '''write registration support files to /mnt/etc/...'''
-    with open('/mnt/etc/register_config.sh', 'w') as writer:
+    script = '{}/register_config.sh'.format(path)
+    with open(script, 'w') as writer:
         writer.write('export AUTH_SERVER_URL={}'.format(config.host))
         writer.write('export DEVICE_SECURITY={}'.format(config.key_security))
         writer.write('export AUTH_SERVER_DOMAIN={}'.format(config.domain))
@@ -20,6 +21,7 @@ def write_registration_files(config: RemoteConfig):
         writer.write('export DEVICE_LOCATION={}'.format(config.location))
         writer.close()
 
-    with open('/mnt/etc/register_config.json', 'w') as writer:
-        writer.write(json.dumps(config))
+    json_file = '{}/register_config.json'.format(path)
+    with open(json_file, 'w') as writer:
+        writer.write(json.dumps(config, cls=EnhancedJSONEncoder))
         writer.close()

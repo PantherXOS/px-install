@@ -73,7 +73,7 @@ CMD_INSTALL = [
 def run_commands(commands: list):
     '''Execute an array of commands'''
     for command in commands:
-        subprocess.run(command, check=True)
+        subprocess.run(command, check=True, shell=True)
 
 
 def installation(config: SystemConfiguration, is_enterprise_config: bool = False):

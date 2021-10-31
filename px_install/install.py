@@ -1,11 +1,14 @@
 '''Installation'''
 
-from px_install.util import list_of_commands_to_string
 import subprocess
+
+from px_install.util import list_of_commands_to_string
+
 from .classes import SystemConfiguration
-from .system_config import write_system_config
+from .remote_config import (move_enterprice_channels,
+                            move_enterprise_system_config)
 from .system_channels import write_system_channels
-from .remote_config import move_enterprice_channels, move_enterprise_system_config
+from .system_config import write_system_config
 
 
 def get_CMD_FORMAT_BIOS(disk: str):
@@ -23,7 +26,7 @@ def get_CMD_FORMAT_BIOS(disk: str):
         ['sgdisk', '-t', '1:ef02', disk],
         ['sgdisk', '-t', '2:8300', disk],
         ['parted', disk, 'set', '1', 'boot', 'on'],
-        ['mkfs.ext4', '-L', 'my-root', part2]
+        ['mkfs.ext4', '-F', '-L', 'my-root', part2]
     ]
     return cmd_format_bios
 
@@ -42,8 +45,8 @@ def get_CMD_FORMAT_EFI(disk: str):
         ['sgdisk', '-t', '1:ef00', disk],
         ['sgdisk', '-t', '2:8300', disk],
         ['parted', disk, 'set', '1', 'esp', 'on'],
-        ['mkfs.fat', '-F32', part1],
-        ['mkfs.ext4', '-L', 'my-root', part2],
+        ['mkfs.fat', '-F', '-F32', part1],
+        ['mkfs.ext4', '-F', '-L', 'my-root', part2],
         ['mkdir', '/boot/efi'],
         ['mount', part1, '/boot/efi']
     ]
@@ -75,7 +78,11 @@ def run_commands(commands: list):
     '''Execute an array of commands'''
     for command in commands:
         command_string = list_of_commands_to_string(command)
-        subprocess.run(command_string, check=True, shell=True)
+        # result = subprocess.run(command_string, check=True, shell=True)
+        # if result.stderr:
+        #     print(result.stderr)
+        print('DEBUG: => Running {}'.format(command_string))
+        subprocess.call(command_string, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
 
 def installation(config: SystemConfiguration, is_enterprise_config: bool = False):

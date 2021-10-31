@@ -52,7 +52,8 @@ def get_CMD_FORMAT_EFI(disk: str):
 CMD_PREP_INSTALL = [
     ['mount', 'LABEL=my-root', '/mnt'],
     ['herd', 'start', 'cow-store', '/mnt'],
-    ['mkdirs', '/mnt/etc/guix']
+    ['mkdir', '/mnt/etc'],
+    ['mkdir', '/mnt/etc/guix']
 ]
 
 CMD_CREATE_SWAP = [

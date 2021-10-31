@@ -30,6 +30,8 @@
                        (mount-point "/")
                        (type "ext4"))
                       %base-file-systems))
+
+  (swap-devices '("/swapfile"))
   
   (users (cons (user-account
                 (name "<USERNAME>")

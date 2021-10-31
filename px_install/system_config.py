@@ -34,7 +34,7 @@ def matching_template_is_available(config: SystemConfiguration):
 
 def exit_if_system_config_exists():
     '''Rundimentary check to see this is not a installed system'''
-    if os.path.isdir('/etc/'):
+    if os.path.isfile('/etc/system.scm'):
         print('You should not run this on a installed system.')
         sys.exit()
 

@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# PantherX on DigitalOcean
+# PantherX on Hetzner
 
 # Test on:
 # - Ubuntu 21.04
 # - Debian 11
 #
-# 1. Create a new Droplet with Debian 11
+# 1. Create a new CCX11 with Debian 11
 # 2. Login with SSH
 # 3. Paste this script into a setup.sh and run it
-# 4. Wait ~10 minutes on a $5 Droplet
+# 4. Wait ~10 minutes on a 25 Euro Cloud Server
 #
 # If you just want to deploy to the target machine, from your PantherX installation, this is all you need to do.
 # If you want to operate on the target machine directly, you need to run the 2nd script pantherx-on-digitalocean_second.sh
@@ -23,6 +23,8 @@ LOCALE="en_US.utf8"
 USERNAME="panther"
 USER_COMMENT="panther's account"
 USER_PASSWORD="6a4NQqrp84Y7mj56"
+
+HOSTNAME='pantherx'
 
 ###### MODIFY END
 
@@ -77,11 +79,6 @@ guix package -i glibc-utf8-locales
 export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
 guix package -i openssl
 
-HOSTNAME=$(curl -s http://169.254.169.254/metadata/v1/hostname)
-PUBLIC_IPV4=$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address)
-NETMASK=$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/netmask)
-GATEWAY=$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/gateway)
-
 function write_server_config() {
 cat >> $CONFIG <<EOL
 ;; Server Configuration (plain) v1
@@ -101,11 +98,11 @@ cat >> $CONFIG <<EOL
 
   (bootloader (bootloader-configuration
                (bootloader grub-bootloader)
-               (target "/dev/vda")))
+               (target "/dev/sda")))
        
   (file-systems (append
         (list (file-system
-                (device "/dev/vda1")
+                (device "/dev/sda1")
                 (mount-point "/")
                 (type "ext4")))
               %base-file-systems))
@@ -123,10 +120,8 @@ cat >> $CONFIG <<EOL
   ;; Globally-installed packages.
   (packages (cons* screen openssh nss-certs gnutls %base-packages))
 
-  (services (cons* (static-networking-service "eth0" "${PUBLIC_IPV4}"
-  #:netmask "${NETMASK}"
-  #:gateway "${GATEWAY}"
-  #:name-servers '("84.200.69.80" "84.200.70.40"))
+  (services (cons* 
+  (service dhcp-client-service-type)
   (service openssh-service-type
   		  (openssh-configuration
 		  (permit-root-login 'without-password)))
@@ -178,8 +173,5 @@ guix system reconfigure /etc/bootstrap-config.scm
 
 echo "We are done here."
 echo $HOSTNAME
-echo $PUBLIC_IPV4
-echo $NETMASK
-echo $GATEWAY
 
-reboot
+# reboot

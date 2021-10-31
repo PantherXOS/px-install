@@ -1,20 +1,15 @@
 #!/bin/bash
 
-# PantherX on Hetzner
-
-################
-# NOT WORKING YET
-# Network fails after reboot; simply no connection
-################
+# PantherX on DigitalOcean
 
 # Test on:
 # - Ubuntu 21.04
 # - Debian 11
 #
-# 1. Create a new CCX11 with Debian 11
+# 1. Create a new Droplet with Debian 11
 # 2. Login with SSH
 # 3. Paste this script into a setup.sh and run it
-# 4. Wait ~10 minutes on a 25 Euro Cloud Server
+# 4. Wait ~10 minutes on a $5 Droplet
 #
 # If you just want to deploy to the target machine, from your PantherX installation, this is all you need to do.
 # If you want to operate on the target machine directly, you need to run the 2nd script pantherx-on-digitalocean_second.sh
@@ -23,16 +18,11 @@
 
 ###### MODIFY
 
-TIMEZONE="Europe/Berlin"
+TIMEZONE="Asia/Bangkok"
 LOCALE="en_US.utf8"
 USERNAME="panther"
 USER_COMMENT="panther's account"
 USER_PASSWORD="6a4NQqrp84Y7mj56"
-
-HOSTNAME='pantherx'
-PUBLIC_IPV4='116.203.150.168'
-NETMASK='255.255.255.255'
-GATEWAY='172.31.1.1'
 
 ###### MODIFY END
 
@@ -87,6 +77,11 @@ guix package -i glibc-utf8-locales
 export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
 guix package -i openssl
 
+HOSTNAME=$(curl -s http://169.254.169.254/metadata/v1/hostname)
+PUBLIC_IPV4=$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address)
+NETMASK=$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/netmask)
+GATEWAY=$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/gateway)
+
 function write_server_config() {
 cat >> $CONFIG <<EOL
 ;; Server Configuration (plain) v1
@@ -106,11 +101,11 @@ cat >> $CONFIG <<EOL
 
   (bootloader (bootloader-configuration
                (bootloader grub-bootloader)
-               (target "/dev/sda")))
+               (target "/dev/vda")))
        
   (file-systems (append
         (list (file-system
-                (device "/dev/sda1")
+                (device "/dev/vda1")
                 (mount-point "/")
                 (type "ext4")))
               %base-file-systems))
@@ -160,13 +155,11 @@ EOL
 
 write_server_config
 write_system_channels
-#write_signing_key
 
+# write_signing_key
 # guix archive --authorize < /etc/packages.pantherx.org.pub
 # guix pull --disable-authentication --channels=/etc/channels.scm
-
 # hash guix
-
 
 guix system build /etc/bootstrap-config.scm
 # these appear to be the necessary on Ubuntu 21.04
@@ -187,4 +180,4 @@ echo $PUBLIC_IPV4
 echo $NETMASK
 echo $GATEWAY
 
-# reboot
+reboot

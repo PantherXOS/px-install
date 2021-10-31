@@ -143,3 +143,4 @@ cython_debug/
 *.tar
 *.tar.gz
 .config.sh
+test.py

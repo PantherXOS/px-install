@@ -9,6 +9,7 @@ from .remote_config import (move_enterprice_channels,
                             move_enterprise_system_config)
 from .system_channels import write_system_channels
 from .system_config import write_system_config
+from tqdm import tqdm
 
 
 def get_CMD_FORMAT_BIOS(disk: str):
@@ -76,13 +77,11 @@ CMD_INSTALL = [
 
 def run_commands(commands: list):
     '''Execute an array of commands'''
-    for command in commands:
+    for command in tqdm(commands):
         command_string = list_of_commands_to_string(command)
-        # result = subprocess.run(command_string, check=True, shell=True)
-        # if result.stderr:
-        #     print(result.stderr)
-        print('DEBUG: => Running {}'.format(command_string))
-        subprocess.call(command_string, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+        res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL)
+        if res.stderr:
+            print(res.stderr)
 
 
 def installation(config: SystemConfiguration, is_enterprise_config: bool = False):

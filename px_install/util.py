@@ -43,3 +43,16 @@ def is_valid_hostname(hostname) -> bool:
 
     allowed = re.compile(r"(?!-)[a-z0-9-]{1,63}(?<!-)$", re.IGNORECASE)
     return all(allowed.match(label) for label in labels)
+
+
+def list_of_commands_to_string(command: list):
+    final = ''
+    total = len(command)
+    count = 1
+    for item in command:
+        if count == total:
+            final += item
+        else:
+            final += "{} ".format(item)
+        count += 1
+    return final

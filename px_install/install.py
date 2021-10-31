@@ -1,5 +1,6 @@
 '''Installation'''
 
+from px_install.util import list_of_commands_to_string
 import subprocess
 from .classes import SystemConfiguration
 from .system_config import write_system_config
@@ -73,7 +74,8 @@ CMD_INSTALL = [
 def run_commands(commands: list):
     '''Execute an array of commands'''
     for command in commands:
-        subprocess.run(command, check=True, shell=True)
+        command_string = list_of_commands_to_string(command)
+        subprocess.run(command_string, check=True, shell=True)
 
 
 def installation(config: SystemConfiguration, is_enterprise_config: bool = False):

@@ -27,7 +27,7 @@ def get_CMD_FORMAT_BIOS(disk: str):
         ['sgdisk', '-t', '1:ef02', disk],
         ['sgdisk', '-t', '2:8300', disk],
         ['parted', disk, 'set', '1', 'boot', 'on'],
-        ['mkfs.ext4', '-F', '-L', 'my-root', part2]
+        ['mkfs.ext4', '-I', '-L', 'my-root', part2]
     ]
     return cmd_format_bios
 
@@ -46,8 +46,8 @@ def get_CMD_FORMAT_EFI(disk: str):
         ['sgdisk', '-t', '1:ef00', disk],
         ['sgdisk', '-t', '2:8300', disk],
         ['parted', disk, 'set', '1', 'esp', 'on'],
-        ['mkfs.fat', '-F', '-F32', part1],
-        ['mkfs.ext4', '-F', '-L', 'my-root', part2],
+        ['mkfs.fat', '-I', '-F32', part1],
+        ['mkfs.ext4', '-I', '-L', 'my-root', part2],
         ['mkdir', '/boot/efi'],
         ['mount', part1, '/boot/efi']
     ]

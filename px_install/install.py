@@ -13,8 +13,12 @@ def get_CMD_FORMAT_BIOS(disk: str):
     part2 = "{}2".format(disk)
 
     cmd_format_bios = [
-        ['parted', '-s', disk,
-         '--', 'mklabel', 'msdos', 'mkpart', 'primary', 'fat32', '0%', '10M', 'mkpart', 'primary', '10M', '100%'],
+        [
+            'parted', '-s', disk, '--',
+            'mklabel', 'msdos',
+            'mkpart', 'primary', 'fat32', '0%', '10M',
+            'mkpart', 'primary', '10M', '100%'
+        ],
         ['sgdisk', '-t', '1:ef02', disk],
         ['sgdisk', '-t', '2:8300', disk],
         ['parted', disk, 'set', '1', 'boot', 'on'],
@@ -28,13 +32,17 @@ def get_CMD_FORMAT_EFI(disk: str):
     part1 = "{}1".format(disk)
     part2 = "{}2".format(disk)
     cmd_format_efi = [
-        ['parted', '-s', disk,
-         '--', 'mklabel', 'gpt', 'mkpart', 'primary', 'fat32', '0%', '200M', 'mkpart', 'primary', '200M', '100%'],
+        [
+            'parted', '-s', disk, '--',
+            'mklabel', 'gpt',
+            'mkpart', 'primary', 'fat32', '0%', '200M',
+            'mkpart', 'primary', '200M', '100%'
+        ],
         ['sgdisk', '-t', '1:ef00', disk],
         ['sgdisk', '-t', '2:8300', disk],
         ['parted', disk, 'set', '1', 'esp', 'on'],
         ['mkfs.fat', '-F32', part1],
-        ['mkfs.ext4', '-L my-root', part2],
+        ['mkfs.ext4', '-L', 'my-root', part2],
         ['mkdir', '/boot/efi'],
         ['mount', part1, '/boot/efi']
     ]
@@ -43,7 +51,7 @@ def get_CMD_FORMAT_EFI(disk: str):
 
 CMD_PREP_INSTALL = [
     ['mount', 'LABEL=my-root', '/mnt'],
-    ['herd', 'start cow-store', '/mnt'],
+    ['herd', 'start', 'cow-store', '/mnt'],
     ['mkdirs', '/mnt/etc/guix']
 ]
 

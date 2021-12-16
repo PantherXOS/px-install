@@ -29,14 +29,14 @@ Run with prompts:
 px-install run
 ```
 
-Run with command line arguments:
+Run with defaults:
 
 ```bash
 # This will install the system with everything set to default
 px-install
 ```
 
-All Options
+Run with command line arguments:
 
 ```bash
 px-install --type DESKTOP \
@@ -109,4 +109,16 @@ Also included in the repository:
 $ python3 -m unittest -v
 ...
 Ran 5 tests in 0.000s
+```
+
+### Debugging
+
+Access the latest installer, booted from USB:
+
+```
+guix package -i python
+python3 -m venv venv
+source venv/bin/activate
+pip3 install https://source.pantherx.org/px-install_v<LATEST_VERSION>.tgz
+px-install run
 ```

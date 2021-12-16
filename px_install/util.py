@@ -1,10 +1,13 @@
 '''Misc'''
 
 import os
-import re
-import subprocess
-import string
 import random
+import re
+import string
+import subprocess
+
+from pytz import all_timezones
+from tqdm import tqdm
 
 
 def check_efi_or_bios():
@@ -45,6 +48,13 @@ def is_valid_hostname(hostname) -> bool:
     return all(allowed.match(label) for label in labels)
 
 
+def is_valid_timezone(timezone: str) -> bool:
+	if timezone in all_timezones:
+		return True
+	else:
+		return False
+
+
 def list_of_commands_to_string(command: list):
     final = ''
     total = len(command)
@@ -56,3 +66,19 @@ def list_of_commands_to_string(command: list):
             final += "{} ".format(item)
         count += 1
     return final
+
+
+def run_commands(commands: list, show_progress: bool = True):
+    '''Execute an array of commands'''
+    if show_progress:
+        for command in tqdm(commands):
+            command_string = list_of_commands_to_string(command)
+            res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL)
+            if res.stderr:
+                print(res.stderr)
+    else:
+        for command in commands:
+            command_string = list_of_commands_to_string(command)
+            res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL)
+            if res.stderr:
+                print(res.stderr)

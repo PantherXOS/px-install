@@ -12,7 +12,7 @@
 # 4. Wait ~10 minutes on a 25 Euro Cloud Server
 #
 # If you just want to deploy to the target machine, from your PantherX installation, this is all you need to do.
-# If you want to operate on the target machine directly, you need to run the 2nd script pantherx-on-digitalocean_second.sh
+# If you want to operate on the target machine directly, you need to run the 2nd script pantherx-on-hetzner-cloud_second.sh
 #
 # Modify below values to suit your needs. Change the password!
 
@@ -151,12 +151,9 @@ EOL
 write_server_config
 write_system_channels
 #write_signing_key
-
 # guix archive --authorize < /etc/packages.pantherx.org.pub
 # guix pull --disable-authentication --channels=/etc/channels.scm
-
 # hash guix
-
 
 guix system build /etc/bootstrap-config.scm
 # these appear to be the necessary on Ubuntu 21.04

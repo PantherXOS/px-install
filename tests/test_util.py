@@ -1,8 +1,5 @@
-from px_install.registration import write_registration_files
-import os
 import unittest
-from px_install.classes import RemoteConfig
-from px_install.util import is_valid_hostname, list_of_commands_to_string
+from px_install.util import is_valid_hostname, is_valid_timezone, list_of_commands_to_string
 
 file_dir = '/tmp/px_install_test_registration'
 file_path = '{}/register_config.sh'.format(file_dir)
@@ -47,3 +44,13 @@ class TestUtil(unittest.TestCase):
         command = ['guix']
         command_string = list_of_commands_to_string(command)
         self.assertEqual(command_string, 'guix')
+
+    def test_is_valid_timezone(self):
+        timezone = 'Asia/Tehran'
+        valid = is_valid_timezone(timezone)
+        self.assertTrue(valid)
+
+    def test_is_invalid_timezone(self):
+        timezone = 'Europe/France'
+        valid = is_valid_timezone(timezone)
+        self.assertFalse(valid)

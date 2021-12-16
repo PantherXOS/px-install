@@ -1,21 +1,21 @@
 '''Installation'''
 
-import subprocess
-
-from px_install.util import list_of_commands_to_string
-
 from .classes import SystemConfiguration
 from .remote_config import (move_enterprice_channels,
                             move_enterprise_system_config)
 from .system_channels import write_system_channels
 from .system_config import write_system_config
-from tqdm import tqdm
+from .util import run_commands
 
 
 def get_CMD_FORMAT_BIOS(disk: str):
     '''Expect /dev/sda or similiar'''
     part1 = "{}1".format(disk)
     part2 = "{}2".format(disk)
+    # Quick'n dirty partition overwrite
+    if 'nvme' in disk:
+        part1 = "{}p1".format(disk)
+        part2 = "{}p2".format(disk)
 
     cmd_format_bios = [
         [
@@ -36,6 +36,11 @@ def get_CMD_FORMAT_EFI(disk: str):
     '''Expect /dev/sda or similiar'''
     part1 = "{}1".format(disk)
     part2 = "{}2".format(disk)
+    # Quick'n dirty partition overwrite
+    if 'nvme' in disk:
+        part1 = "{}p1".format(disk)
+        part2 = "{}p2".format(disk)
+
     cmd_format_efi = [
         [
             'parted', '-s', disk, '--',
@@ -75,33 +80,35 @@ CMD_INSTALL = [
 ]
 
 
-def run_commands(commands: list):
-    '''Execute an array of commands'''
-    for command in tqdm(commands):
-        command_string = list_of_commands_to_string(command)
-        res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL)
-        if res.stderr:
-            print(res.stderr)
-
-
 def installation(config: SystemConfiguration, is_enterprise_config: bool = False):
     firmware = config.firmware
 
+    print('=> (1) Formatting hard disk ...')
     if firmware == 'bios':
         run_commands(get_CMD_FORMAT_BIOS(config.disk))
     if firmware == 'efi':
         run_commands(get_CMD_FORMAT_EFI(config.disk))
 
+    print('=> (2) Mounting partitions ...')
     run_commands(CMD_PREP_INSTALL)
+
+    print('=> (3) Creating SWAP file ...')
     run_commands(CMD_CREATE_SWAP)
 
     if is_enterprise_config:
         move_enterprise_system_config()
         move_enterprice_channels()
     else:
+        print('=> (4) Writing system configuration ...')
         write_system_config(config)
         write_system_channels()
 
+    print('=> (5) Starting installation ...')
+    print('Depending on your internet connection speed and system performance, this operation will take 10 to 90 minutes.')
     run_commands(CMD_INSTALL)
 
-    print('You should set a root password and change your user password after installation.')
+    print()
+    print("PantherX OS has been installed successfully.")
+    print("")
+    print("You should change your user and root password after reboot.")
+    print("Reboot with 'reboot'")

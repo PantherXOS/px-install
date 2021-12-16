@@ -1,11 +1,12 @@
 '''Command line interface'''
 
+from datetime import time
 import sys
 import argparse
 import logging
 
 from .classes import SystemConfiguration
-from .util import check_efi_or_bios, print_disks, random_hostname, is_valid_hostname
+from .util import check_efi_or_bios, is_valid_timezone, print_disks, random_hostname, is_valid_hostname
 from .remote_config import get_enterprise_config
 from .system_config import matching_template_is_available
 
@@ -48,10 +49,19 @@ def get_cl_arguments():
             print()
             hostname = input("Specify hostname. ['{}']: ".format(hostname_generated)) or hostname_generated
             if not is_valid_hostname(hostname):
-                sys.exit()
+                print('{} is not a valid hostname.'.format(hostname))
+                sys.exit(1)
         print("-> Selected {}".format(hostname))
         print()
         timezone = input("Specify a time zone. ['Europe/Berlin']: ") or 'Europe/Berlin'
+        if not is_valid_timezone(timezone):
+            print('{} is not a valid time zone.'.format(timezone))
+            print("Valid examples include: 'Europe/Berlin', 'Asia/Kuala_Lumpur', 'US/Pacific', 'Etc/GMT+3'")
+            print()
+            timezone = input("Specify a time zone. ['Europe/Berlin']: ") or 'Europe/Berlin'
+            if not is_valid_timezone(timezone):
+                print('{} is not a valid time zone.'.format(timezone))
+                sys.exit(1)
         print("-> Selected {}".format(timezone))
         print()
         locale = input("Specify a locale. ['en_US.utf8']: ") or 'en_US.utf8'
@@ -68,7 +78,7 @@ def get_cl_arguments():
         print()
         print_disks()
         print()
-        disk = input("Specify a the disk to use (Format: '/dev/<DISK>) ['/dev/sda']: ") or '/dev/sda'
+        disk = input("Specify a the disk to use (Format: '/dev/<DISK>') ['/dev/sda']: ") or '/dev/sda'
         print("-> Selected {}".format(disk))
 
     else:
@@ -118,9 +128,11 @@ def get_cl_arguments():
         if not is_valid_hostname(hostname):
             print('{} is not a valid hostname.'.format(hostname))
             print("Allowed: [0-9], [a-z], '-'. Example: my-pantherx")
-            print('Exitting ...')
             sys.exit()
         timezone = args.timezone
+        if not is_valid_timezone(timezone):
+            print('{} is not a valid time zone.'.format(timezone))
+            print("Valid examples include: 'Europe/Berlin', 'Asia/Kuala_Lumpur', 'US/Pacific', 'Etc/GMT+3'")
         locale = args.locale
         username = args.username
         password = args.password

@@ -121,11 +121,9 @@ def pre_install_environment_check(config):
     if not swap_file_found:
         errors.append('Swap file /mnt/swapfile does not exist.')
 
-
     system_config_found = os.path.isfile('/mnt/etc/system.scm')
     if not system_config_found:
         errors.append('System config /mnt/etc/system.scm does not exist.')
-
 
     if len(errors) > 0:
         for error in errors:
@@ -157,5 +155,5 @@ def is_online():
         http = urllib3.PoolManager()
         http.request('GET', 'http://138.201.123.174', timeout=1)
         return True
-    except urllib3.exceptions.ProtocolError:
+    except:
         return False

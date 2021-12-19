@@ -2,7 +2,7 @@ import sys
 
 import pkg_resources
 
-from px_install.util import generate_and_print_debug_info, is_online
+from px_install.util import generate_and_print_debug_info, is_online, print_debug_qr_code
 
 from .cli import get_cl_arguments
 from .install import installation
@@ -17,12 +17,20 @@ def main():
     print('Welcome to PantherX Installation v{}'.format(version))
     print()
     print('For guidance, consult: https://wiki.pantherx.org/Installation-guide')
-    print('For assistance, visit https://community.pantherx.org')
+    print('For help, visit https://community.pantherx.org')
     print('------')
     
     online = is_online()
     if not online:
+        print()
+        print('######## ERROR ########')
         print('Your system does not appear to have an active internet connection.')
+        print()
+        print('Consult https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
+        print('To get help, visit https://community.pantherx.org/')
+        print()
+        print_debug_qr_code('https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
+        print('Scan to open: https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
         sys.exit(1)
 
     exit_if_system_config_exists()
@@ -41,7 +49,7 @@ def main():
         print()
         generate_and_print_debug_info(input_args['config'], version, str(err))
         print()
-        print('To get help, please visit https://community.pantherx.org/')
+        print('To get help, visit https://community.pantherx.org/')
         print('Scan the QR code, to easily share your setup-related information.')
     finally:
         if is_enterprise_config:

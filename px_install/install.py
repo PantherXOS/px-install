@@ -74,17 +74,17 @@ CMD_INSTALL = [
 def installation(config: SystemConfiguration, is_enterprise_config: bool = False):
     firmware = config.firmware
 
-    print('=> (1) Formatting hard disk ...')
+    print('=> (1) Formatting hard disk {} ...'.format(config.disk.dev_name))
     if firmware == 'bios':
-        run_commands(get_CMD_FORMAT_BIOS(config.disk))
+        run_commands(get_CMD_FORMAT_BIOS(config.disk), show_progress=False)
     if firmware == 'efi':
-        run_commands(get_CMD_FORMAT_EFI(config.disk))
+        run_commands(get_CMD_FORMAT_EFI(config.disk), show_progress=False)
 
     print('=> (2) Mounting partitions ...')
     run_commands(CMD_PREP_INSTALL)
 
     print('=> (3) Creating SWAP file ...')
-    run_commands(CMD_CREATE_SWAP)
+    run_commands(CMD_CREATE_SWAP, show_progress=False)
 
     if is_enterprise_config:
         move_enterprise_system_config()

@@ -26,7 +26,7 @@ def get_cl_arguments():
     largest_block_device = get_largest_valid_block_device(block_devices)
     if largest_block_device is None:
         raise ValueError('No valid disk found for installation.')
-    default_disk_name = "/dev/{}".format(largest_block_device.name)
+    default_disk_name = largest_block_device.dev_name
 
     disk_input = ''
 

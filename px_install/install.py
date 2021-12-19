@@ -40,7 +40,7 @@ def get_CMD_FORMAT_EFI(disk: BlockDevice):
             'mkpart', 'primary', '200M', '100%'
         ],
         ['sgdisk', '-t', '1:ef00', disk.dev_name],
-        ['sgdisk', '-t', '2:8300', disk],
+        ['sgdisk', '-t', '2:8300', disk.dev_name],
         ['parted', disk.dev_name, 'set', '1', 'esp', 'on'],
         ['mkfs.fat', '-I', '-F32', part1],
         ['mkfs.ext4', '-q', '-L', 'my-root', part2],

@@ -1,14 +1,20 @@
 '''Command line interface'''
 
-from datetime import time
-import sys
 import argparse
 import logging
+import sys
+from datetime import time
+
+from px_install.block_devices import (get_block_device_by_name,
+                                      get_block_devices,
+                                      get_largest_valid_block_device,
+                                      list_block_devices)
 
 from .classes import SystemConfiguration
-from .util import check_efi_or_bios, is_valid_timezone, print_disks, random_hostname, is_valid_hostname
 from .remote_config import get_enterprise_config
 from .system_config import matching_template_is_available
+from .util import (check_efi_or_bios, is_valid_hostname, is_valid_timezone,
+                   random_hostname)
 
 log = logging.getLogger(__name__)
 
@@ -16,6 +22,13 @@ log = logging.getLogger(__name__)
 def get_cl_arguments():
 
     hostname_generated = random_hostname('pantherx', 6)
+    block_devices = get_block_devices()
+    largest_block_device = get_largest_valid_block_device(block_devices)
+    if largest_block_device is None:
+        raise ValueError('No valid disk found for installation.')
+    default_disk_name = "/dev/{}".format(largest_block_device.name)
+
+    disk_input = ''
 
     type = ''
     firmware = check_efi_or_bios()
@@ -67,19 +80,20 @@ def get_cl_arguments():
         locale = input("Specify a locale. ['en_US.utf8']: ") or 'en_US.utf8'
         print("-> Selected {}".format(locale))
         print()
-        username = input("Specify a username. ['panther']: ") or 'panther'
+        username = input("Specify your username. ['panther']: ") or 'panther'
+        username = username.lower()
         print("-> Selected {}".format(username))
         print()
-        password = input("Specify a password. ['pantherx']: ") or 'pantherx'
+        password = input("Specify {} password. ['pantherx']: ".format(username)) or 'pantherx'
         print("-> Selected {}".format(password))
         print()
         public_key = input("Specify a public key to login via SSH or leave empty. ['NONE']: ") or 'NONE'
         print("-> Selected {}".format(public_key))
         print()
-        print_disks()
+        list_block_devices(block_devices)
         print()
-        disk = input("Specify a the disk to use (Format: '/dev/<DISK>') ['/dev/sda']: ") or '/dev/sda'
-        print("-> Selected {}".format(disk))
+        disk_input = input("Specify a the disk to use (Format: '/dev/<DISK>') ['{}']: ".format(default_disk_name)) or default_disk_name
+        print("-> Selected {}".format(disk_input))
 
     else:
         '''Command line arguments'''
@@ -110,8 +124,8 @@ def get_cl_arguments():
         parser.add_argument("-pk", "--key", type=str,
                             help="Specify a public key to login via SSH. Example: `ssh-ed25519 AA ... 4QydPg franz`"
                             )
-        parser.add_argument("-d", "--disk", type=str, default='/dev/sda',
-                            help="Specify the disk to use. Defaults to '/dev/sda'"
+        parser.add_argument("-d", "--disk", type=str, default=default_disk_name,
+                            help="Specify the disk to use. Defaults to '{}'".format(default_disk_name)
                             )
         parser.add_argument("-c", "--config", type=str,
                             help="Specify a enterprise config ID. This will overwrite all other settings."
@@ -137,7 +151,7 @@ def get_cl_arguments():
         username = args.username
         password = args.password
         public_key = args.key
-        disk = args.disk
+        disk_input = args.disk
 
         if args.config:
             is_enterprise_config = True
@@ -150,6 +164,13 @@ def get_cl_arguments():
         public_key = 'NONE'
         if args.key:
             public_key = args.key
+
+        print()
+        print("To customize defaults, run 'px-install run' instead.")
+
+    disk = get_block_device_by_name(disk_input)
+    if disk is None:
+        raise EnvironmentError('Selected disk {} does not exist.'.format(disk_input))
 
     config = SystemConfiguration(
         type=type,
@@ -164,7 +185,8 @@ def get_cl_arguments():
     )
 
     print()
-    print('##### SUMMARY')
+    print('######## SUMMARY ########')
+    print()
     print("Type: {}".format(config.type))
     print("Firmware: {}".format(config.firmware))
     print("Hostname: {}".format(config.hostname))
@@ -172,15 +194,15 @@ def get_cl_arguments():
     print("Username: {}".format(config.username))
     print("Password: {}".format(config.password))
     print("Public key: {}".format(config.public_key))
-    print("Disk: {}".format(config.disk))
+    print("Disk: {} ({} Gigabyte)".format(config.disk.dev_name, disk.size_in_gb()))
     print()
 
     matching_template_is_available(config)
 
-    print('IMPORTANT: Your hard disk will be formatted and all data lost!')
+    print('IMPORTANT: Your hard disk {} will be formatted and all data lost!'.format(config.disk.dev_name))
     print('Would you like to continue?')
     print()
-    approved = input("Approve config with 'yes'; cancel with 'no': ")
+    approved = input("Approve system configuration with 'yes'; cancel with 'no': ")
     if approved.lower() != 'yes':
         print('You did not approve. Exiting...')
         sys.exit()

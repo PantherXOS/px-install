@@ -1,12 +1,16 @@
-from dataclasses import dataclass
-import dataclasses, json
+import dataclasses
 import json
+from dataclasses import dataclass
+
+from .block_devices import BlockDevice
+
 
 class EnhancedJSONEncoder(json.JSONEncoder):
     def default(self, o):
         if dataclasses.is_dataclass(o):
             return dataclasses.asdict(o)
         return super().default(o)
+
 
 @dataclass
 class SystemConfiguration():
@@ -19,7 +23,22 @@ class SystemConfiguration():
     username: str
     password: str
     public_key: str
-    disk: str
+    disk: BlockDevice
+
+    def get_dict(self):
+        config_dict = {
+            'type': self.type,
+            'firmware': self.firmware,
+            'hostname': self.hostname,
+            'locale': self.locale,
+            'username': self.username,
+            'password': self.password,
+            'public_key': self.public_key
+        }
+        return config_dict
+
+    def get_json(self):
+        return json.dumps(self.get_dict())
 
 
 @dataclass

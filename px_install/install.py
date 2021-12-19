@@ -1,21 +1,16 @@
 '''Installation'''
 
-from .classes import SystemConfiguration
+from .classes import BlockDevice, SystemConfiguration
 from .remote_config import (move_enterprice_channels,
                             move_enterprise_system_config)
 from .system_channels import write_system_channels
 from .system_config import write_system_config
-from .util import run_commands
+from .util import pre_install_environment_check, run_commands
 
 
-def get_CMD_FORMAT_BIOS(disk: str):
+def get_CMD_FORMAT_BIOS(disk: BlockDevice):
     '''Expect /dev/sda or similiar'''
-    part1 = "{}1".format(disk)
-    part2 = "{}2".format(disk)
-    # Quick'n dirty partition overwrite
-    if 'nvme' in disk:
-        part1 = "{}p1".format(disk)
-        part2 = "{}p2".format(disk)
+    part2 = disk.get_partition_dev_name(2)
 
     cmd_format_bios = [
         [
@@ -32,14 +27,10 @@ def get_CMD_FORMAT_BIOS(disk: str):
     return cmd_format_bios
 
 
-def get_CMD_FORMAT_EFI(disk: str):
+def get_CMD_FORMAT_EFI(disk: BlockDevice):
     '''Expect /dev/sda or similiar'''
-    part1 = "{}1".format(disk)
-    part2 = "{}2".format(disk)
-    # Quick'n dirty partition overwrite
-    if 'nvme' in disk:
-        part1 = "{}p1".format(disk)
-        part2 = "{}p2".format(disk)
+    part1 = disk.get_partition_dev_name(1)
+    part2 = disk.get_partition_dev_name(2)
 
     cmd_format_efi = [
         [
@@ -102,6 +93,8 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
         print('=> (4) Writing system configuration ...')
         write_system_config(config)
         write_system_channels()
+
+    pre_install_environment_check(config)
 
     print('=> (5) Starting installation ...')
     print('Depending on your internet connection speed and system performance, this operation will take 10 to 90 minutes.')

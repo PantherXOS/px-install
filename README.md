@@ -25,7 +25,7 @@ Defaults:
 Run with prompts:
 
 ```bash
-# This will prompt you for all options; No arguments accepted
+# This will prompt you for all options (RECOMMENDED)
 px-install run
 ```
 
@@ -91,7 +91,7 @@ class SystemConfiguration():
     username: str
     password: str
     public_key: str
-    disk: str
+    disk: BlockDevice
 ```
 
 _TODO: Document Enterprise Config library usage._
@@ -100,7 +100,7 @@ _TODO: Document Enterprise Config library usage._
 
 Also included in the repository:
 
-1. `guix-on-digitalocean.sh` -> install GNU Guix on DigitalOcean Debian or Ubuntu Droplet
+1. `pantherx-on-hetzner-cloud.sh` -> install PantherX on Hetzner Debian Cloud Server (need to be reconfigured after reboot)
 2. `pantherx-on-digitalocean.sh` -> install PantherX on DigitalOcean Debian or Ubuntu Droplet (need to be reconfigured after reboot)
 
 ### Tests
@@ -108,17 +108,26 @@ Also included in the repository:
 ```bash
 $ python3 -m unittest -v
 ...
-Ran 5 tests in 0.000s
+Ran 25 tests in 0.621s
 ```
 
 ### Debugging
 
 Access the latest installer, booted from USB:
 
-```
+```bash
 guix package -i python
 python3 -m venv venv
 source venv/bin/activate
 pip3 install https://source.pantherx.org/px-install_v<LATEST_VERSION>.tgz
 px-install run
+```
+
+### Development
+
+```bash
+guix environment --pure \
+--ad-hoc python util-linux tar
+source venv/bin/activate
+pip install .
 ```

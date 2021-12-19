@@ -1,13 +1,14 @@
 ''' Get enterprise device config from S3 by ID '''
 
 import json
-import subprocess
-import shutil
 import os
+import shutil
+import subprocess
 
 from requests import get
 
-from .classes import RemoteConfig, EnhancedJSONEncoder
+from .classes import EnhancedJSONEncoder, RemoteConfig
+
 
 def write_json_config(config: RemoteConfig, path: str = '/root/config/config.json'):
     '''Write config (mostly for testing)'''

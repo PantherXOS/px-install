@@ -2,6 +2,7 @@ import os
 import unittest
 from px_install.classes import RemoteConfig
 from px_install.remote_config import write_json_config, read_json_config, get_enterprise_config, cleanup_enterprise_config
+import shutil
 
 file_dir = '/tmp/px_install_test_remote_config'
 file_path = '{}/config.json'.format(file_dir)
@@ -23,6 +24,8 @@ class TestRemoteConfig(unittest.TestCase):
             type, timezone, locale, title, location, role, key_security, key_type, domain, host
         )
 
+        if os.path.isdir(file_dir):
+            shutil.rmtree(file_dir)
         os.makedirs(file_dir)
         write_json_config(config, file_path)
 
@@ -32,8 +35,7 @@ class TestRemoteConfig(unittest.TestCase):
 
         self.assertEqual(config_from_file.host, host)
 
-        os.remove(file_path)
-        os.removedirs(file_dir)
+        shutil.rmtree(file_dir)
 
     def test_get_enterprise_config(self):
         os.makedirs(file_dir)
@@ -44,4 +46,4 @@ class TestRemoteConfig(unittest.TestCase):
         self.assertEqual(config.host, 'https://identity.pantherx.org')
         cleanup_enterprise_config(file_dir)
 
-        os.removedirs(file_dir)
+        shutil.rmtree(file_dir)

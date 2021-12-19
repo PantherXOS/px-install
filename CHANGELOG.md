@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.18]
+
+### Changed
+
+- More robust error handling
+- Better detection of disks and partitions
+
+### Added
+
+- QR code for easy sharing of debugging information
+- Online check (packages.pantherx.org)
+- More utility tests
+
 ## [0.0.17]
 
 ### Fixed

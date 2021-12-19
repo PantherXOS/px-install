@@ -3,7 +3,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from px_install.classes import SystemConfiguration
+from px_install.classes import BlockDevice, SystemConfiguration
 
 config_dir = '/tmp/px_install_test_system_config'
 config_path = '{}/system.scm'.format(config_dir)
@@ -18,7 +18,7 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'NONE'
-        disk = '/dev/sda'
+        disk = BlockDevice(type='disk', name='/dev/sda', size=0)
         
         config = SystemConfiguration(
             type, firmware, hostname, timezone, locale, username, password, public_key, disk
@@ -37,7 +37,7 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'ssh-ed25519 AAAAC'
-        disk = '/dev/sda'
+        disk = BlockDevice(type='disk', name='/dev/sda', size=0)
         
         config = SystemConfiguration(
             type, firmware, hostname, timezone, locale, username, password, public_key, disk
@@ -56,7 +56,7 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'NONE'
-        disk = '/dev/sda'
+        disk = BlockDevice(type='disk', name='/dev/sda', size=0)
         
         config = SystemConfiguration(
             type, firmware, hostname, timezone, locale, username, password, public_key, disk
@@ -75,7 +75,7 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'ssh-ed25519 AAAAC'
-        disk = '/dev/sda'
+        disk = BlockDevice(type='disk', name='/dev/sda', size=0)
         
         config = SystemConfiguration(
             type, firmware, hostname, timezone, locale, username, password, public_key, disk
@@ -94,7 +94,7 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'NONE'
-        disk = '/dev/sda'
+        disk = BlockDevice(type='disk', name='/dev/sda', size=0)
         
         config = SystemConfiguration(
             type, firmware, hostname, timezone, locale, username, password, public_key, disk

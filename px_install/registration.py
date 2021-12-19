@@ -6,7 +6,7 @@ Write files for registration automation
 '''
 import json
 
-from .classes import RemoteConfig, EnhancedJSONEncoder
+from .classes import EnhancedJSONEncoder, RemoteConfig
 
 
 def write_registration_files(config: RemoteConfig, path: str = '/mnt/etc'):

@@ -7,7 +7,6 @@ import pkg_resources
 
 from .classes import SystemConfiguration
 
-
 available = [
     'base-desktop-bios-ssh.scm',
     'base-desktop-bios.scm',
@@ -64,7 +63,7 @@ def write_system_config(config: SystemConfiguration, path: str = '/mnt/etc/syste
             '<USER_COMMENT>', "{}'s account".format(config.username)
         )
         updated = updated.replace('<USER_HOME>', config.username)
-        updated = updated.replace('<DISK>', config.disk)
+        updated = updated.replace('<DISK>', config.disk.dev_name)
         updated = updated.replace('<PARTITION_ONE>', "{}1").format(config.disk)
 
         if config.public_key != 'NONE':

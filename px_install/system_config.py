@@ -64,7 +64,7 @@ def write_system_config(config: SystemConfiguration, path: str = '/mnt/etc/syste
         )
         updated = updated.replace('<USER_HOME>', config.username)
         updated = updated.replace('<DISK>', config.disk.dev_name)
-        updated = updated.replace('<PARTITION_ONE>', "{}1").format(config.disk)
+        updated = updated.replace('<PARTITION_ONE>', config.disk.get_partition_dev_name(1))
 
         if config.public_key != 'NONE':
             updated = updated.replace('<PUBLIC_KEY>', config.public_key)

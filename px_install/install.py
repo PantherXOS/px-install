@@ -14,14 +14,14 @@ def get_CMD_FORMAT_BIOS(disk: BlockDevice):
 
     cmd_format_bios = [
         [
-            'parted', '-s', disk, '--',
+            'parted', '-s', disk.dev_name, '--',
             'mklabel', 'msdos',
             'mkpart', 'primary', 'fat32', '0%', '10M',
             'mkpart', 'primary', '10M', '100%'
         ],
-        ['sgdisk', '-t', '1:ef02', disk],
-        ['sgdisk', '-t', '2:8300', disk],
-        ['parted', disk, 'set', '1', 'boot', 'on'],
+        ['sgdisk', '-t', '1:ef02', disk.dev_name],
+        ['sgdisk', '-t', '2:8300', disk.dev_name],
+        ['parted', disk.dev_name, 'set', '1', 'boot', 'on'],
         ['mkfs.ext4', '-q', '-L', 'my-root', part2]
     ]
     return cmd_format_bios
@@ -34,14 +34,14 @@ def get_CMD_FORMAT_EFI(disk: BlockDevice):
 
     cmd_format_efi = [
         [
-            'parted', '-s', disk, '--',
+            'parted', '-s', disk.dev_name, '--',
             'mklabel', 'gpt',
             'mkpart', 'primary', 'fat32', '0%', '200M',
             'mkpart', 'primary', '200M', '100%'
         ],
-        ['sgdisk', '-t', '1:ef00', disk],
+        ['sgdisk', '-t', '1:ef00', disk.dev_name],
         ['sgdisk', '-t', '2:8300', disk],
-        ['parted', disk, 'set', '1', 'esp', 'on'],
+        ['parted', disk.dev_name, 'set', '1', 'esp', 'on'],
         ['mkfs.fat', '-I', '-F32', part1],
         ['mkfs.ext4', '-q', '-L', 'my-root', part2],
         ['mkdir', '/boot/efi'],

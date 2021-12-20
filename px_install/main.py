@@ -19,21 +19,6 @@ def main():
     print('For guidance, consult: https://wiki.pantherx.org/Installation-guide')
     print('For help, visit https://community.pantherx.org')
     print('------')
-    
-    online = is_online()
-    if not online:
-        print()
-        print('######## ERROR ########')
-        print('Your system does not appear to have an active internet connection.')
-        print()
-        print('Consult https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
-        print('To get help, visit https://community.pantherx.org/')
-        print()
-        print_debug_qr_code('https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
-        print('Scan to open: https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
-        sys.exit(1)
-
-    exit_if_system_config_exists()
 
     input_args = get_cl_arguments()
     is_enterprise_config = input_args['is_enterprise_config']

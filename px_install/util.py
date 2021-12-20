@@ -6,6 +6,7 @@ import random
 import re
 import string
 import subprocess
+import sys
 
 import cpuinfo
 import qrcode
@@ -22,11 +23,6 @@ def check_efi_or_bios():
     else:
         firmware = 'bios'
     return firmware
-
-
-def print_disks():
-    '''List all block devices'''
-    subprocess.run(['lsblk'], check=True)
 
 
 def random_hostname(name: str, length: int = 6):
@@ -53,6 +49,10 @@ def is_valid_hostname(hostname) -> bool:
 
 
 def is_valid_timezone(timezone: str) -> bool:
+    '''
+    Check whether the given timezone is valid.
+    For ex. 'Europe/Berlin'
+    '''
     if timezone in all_timezones:
         return True
     else:
@@ -60,6 +60,10 @@ def is_valid_timezone(timezone: str) -> bool:
 
 
 def list_of_commands_to_string(command: list):
+    '''
+    Combine a list of comma-seperated commands to string
+    For ex. ['ls', '-a'] -> 'ls -a'
+    '''
     final = ''
     total = len(command)
     count = 1
@@ -73,24 +77,33 @@ def list_of_commands_to_string(command: list):
 
 
 def run_commands(commands: list, show_progress: bool = True):
-    '''Execute an array of commands'''
+    '''
+    Execute an array of commands
+    
+    params:
+        commands: a list of commands: [['ls', '-a'], ['ls']]
+        show_progress: whether to show a progress bar, for the list of commands
+    '''
     if show_progress:
         for command in tqdm(commands):
             command_string = list_of_commands_to_string(command)
-            res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL)
+            res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL, check=True)
             if res.stderr:
                 print(res.stderr)
                 raise Exception(res.stderr)
     else:
         for command in commands:
             command_string = list_of_commands_to_string(command)
-            res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL)
+            res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL, check=True)
             if res.stderr:
                 print(res.stderr)
                 raise Exception(res.stderr)
 
 
 def convert_size_string(value: str):
+    '''
+    Extract the numeric size from lsblk disk size output
+    '''
     size = 0
     if 'T' in value:
         clean = value[:-1]
@@ -107,6 +120,14 @@ def convert_size_string(value: str):
 
 
 def pre_install_environment_check(config):
+    '''
+    Runs a bunch of checks to ensure the environment is ready
+    1. Partition exists
+    2. Swapfile is ready
+    3. Config found
+
+    Raises an EnvironmentError in case any check fails
+    '''
     disk = config.disk
     disk.reload()
 
@@ -114,6 +135,9 @@ def pre_install_environment_check(config):
 
     data_partition = disk.get_partition_dev_name(2)
     data_partition_valid = disk.is_valid_partition(data_partition)
+    if disk.size_in_gb() < 19:
+        errors.append('The selected disk {} is not large enough to comfortably run this operating system.')
+
     if not data_partition_valid:
         errors.append('Partition {} does not exist')
 
@@ -132,12 +156,18 @@ def pre_install_environment_check(config):
 
 
 def print_debug_qr_code(debug: str):
+    '''
+    Generate a QR code from the given string and print to terminal
+    '''
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_L)
     qr.add_data(debug)
     qr.print_ascii(invert=True)
 
 
 def generate_and_print_debug_info(config, version, error=''):
+    '''
+    Collect some debugging info to include in the QR code
+    '''
     error_truncate = (error[:50] + '..') if len(error) > 50 else error
     debug_output = {
         'v': version,
@@ -151,9 +181,31 @@ def generate_and_print_debug_info(config, version, error=''):
 
 
 def is_online():
+    '''
+    Checks that the user is online
+    '''
     try:
         http = urllib3.PoolManager()
         http.request('GET', 'http://138.201.123.174', timeout=1)
         return True
     except:
         return False
+
+
+def online_check():
+    '''
+    Inline online check based on is_online
+    -> Will exit if not online
+    '''
+    online = is_online()
+    if not online:
+        print()
+        print('######## ERROR ########')
+        print('Your system does not appear to have an active internet connection.')
+        print()
+        print('Consult https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
+        print('To get help, visit https://community.pantherx.org/')
+        print()
+        print_debug_qr_code('https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
+        print('Scan to open: https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
+        sys.exit(1)

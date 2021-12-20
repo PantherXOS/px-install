@@ -3,24 +3,21 @@
 import argparse
 import logging
 import sys
-from datetime import time
 
-from px_install.block_devices import (get_block_device_by_name,
-                                      get_block_devices,
-                                      get_largest_valid_block_device,
-                                      list_block_devices)
-
+from .block_devices import (get_block_device_by_name, get_block_devices,
+                            get_largest_valid_block_device, list_block_devices)
 from .classes import SystemConfiguration
 from .remote_config import get_enterprise_config
-from .system_config import matching_template_is_available
-from .util import (check_efi_or_bios, is_valid_hostname, is_valid_timezone,
+from .system_config import exit_if_system_config_exists, matching_template_is_available
+from .util import (check_efi_or_bios, is_online, is_valid_hostname, is_valid_timezone, online_check, print_debug_qr_code,
                    random_hostname)
+from .wifi import (has_valid_wifi_interface, install_wpa_supplicant, list_network_interfaces,
+                   print_wifi_help, prompt_for_wifi_config, write_wifi_config)
 
 log = logging.getLogger(__name__)
 
 
 def get_cl_arguments():
-
     hostname_generated = random_hostname('pantherx', 6)
     block_devices = get_block_devices()
     largest_block_device = get_largest_valid_block_device(block_devices)
@@ -44,7 +41,53 @@ def get_cl_arguments():
     enterprise_config_id = None
     enterprise_config = None
 
-    if len(sys.argv) == 2 and sys.argv[1] == 'run':
+    '''First, a couple of helpers to aid setup'''
+    if len(sys.argv) == 2 and sys.argv[1] == 'wifi-setup':
+        '''
+        Wi-Fi Setup
+        '''
+        valid_interface = has_valid_wifi_interface()
+        if not valid_interface:
+            sys.exit(1)
+        wifi_config = prompt_for_wifi_config()
+        write_wifi_config(wifi_config)
+        install_wpa_supplicant()
+        print_wifi_help()
+        sys.exit(0)
+    elif len(sys.argv) == 2 and sys.argv[1] == 'network-check':
+        interfaces = list_network_interfaces()
+        print()
+        print('######## RESULT ########')
+        print('Found {} suitable network adapters'.format(len(interfaces)))
+        print()
+        count = 1
+        for item in interfaces:
+            ip_info = "UNKNOWN"
+            if len(item.addr_info) > 0:
+                ip_info = ""
+                for addr in item.addr_info:
+                    ip_info += '| IP: {}  Broadcast: {} '.format(addr.local, addr.broadcast)
+            print('''{}. Adapter
+Name: {}
+State: {}
+Address: {}
+'''.format(count, item.name, item.operstate, ip_info))
+            count += 1
+        online = is_online()
+        if online:
+            print('You appear to be online.')
+            print("Run 'px-install run' to continue with the setup.")
+        else:
+            print('You do not appear to be online.')
+            print("Run 'px-install wifi-setup' to get some assistance with Wi-Fi setup, otherwise refer to our installation guide.")
+        sys.exit(0)
+    elif len(sys.argv) == 2 and sys.argv[1] == 'run':
+        '''
+        Run setup with prompts
+        '''
+        online_check()
+        exit_if_system_config_exists()
+
         print()
         print("You will be prompted for a couple of important details. To accept the default, press ENTER.")
         print()
@@ -94,9 +137,13 @@ def get_cl_arguments():
         print()
         disk_input = input("Specify a the disk to use (Format: '/dev/<DISK>') ['{}']: ".format(default_disk_name)) or default_disk_name
         print("-> Selected {}".format(disk_input))
-
     else:
-        '''Command line arguments'''
+        '''
+        Run setup with params
+        '''
+        online_check()
+        exit_if_system_config_exists()
+
         parser = argparse.ArgumentParser()
         parser.add_argument("-t", "--type", type=str, default="DESKTOP",
                             choices=['DESKTOP', 'SERVER', 'ENTERPRISE'],

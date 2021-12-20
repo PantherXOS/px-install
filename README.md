@@ -58,6 +58,30 @@ px install --config abd1uc3z
 
 Refer to `scripts/README.md` for more on enterprise configuration.
 
+### Helpers
+
+#### Wifi
+
+To aid Wi-Fi setup:
+
+```bash
+px-install wifi-setup
+```
+
+This will:
+
+1. Check if a valid interface is available
+2. Prompt for Wi-Fi config
+3. Print commands to activate Wi-Fi
+
+#### Online Check
+
+To check if you're online, do:
+
+```bash
+px-install network-check
+```
+
 ### Minimal bash-based replicate
 
 There's a minimal, all-in-one installer bash script in `scripts/install.sh`. It replicates the python application closely. Instead of params it asks for each setting.
@@ -127,7 +151,7 @@ px-install run
 
 ```bash
 guix environment --pure \
---ad-hoc python util-linux tar
+--ad-hoc python util-linux tar iproute2 coreutils
 source venv/bin/activate
 pip install .
 ```

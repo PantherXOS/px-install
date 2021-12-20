@@ -25,9 +25,13 @@ def get_wifi_interface_names():
     '''
     List all Wi-Fi adapter adapter on the system
     '''
-    process = subprocess.run(['ls /sys/class/ieee80211/*/device/net/'], capture_output=True, text=True, shell=True, check=True)
-    result = process.stdout
-    result_list = result.split(" ")
+    result_list = []
+    try:
+        process = subprocess.run(['ls /sys/class/ieee80211/*/device/net/'], capture_output=True, text=True, shell=True, check=True)
+        result = process.stdout
+        result_list = result.split(" ")
+    except:
+        print('Could not determine available Wi-Fi adapter.')
 
     valid_names = []
 

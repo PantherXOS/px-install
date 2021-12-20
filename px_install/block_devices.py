@@ -46,15 +46,29 @@ class BlockDevice():
             print('Could not reload block device {} info.'.format(self.dev_name))
 
     def size_in_gb(self):
+        '''Get the size in GB'''
         return self.size / 1000
 
     def get_partition_dev_name(self, number: int):
+        '''
+        Get partition dev name; ex: /dev/sda1
+
+        params:
+            number: 1, 2, 3, ..
+        '''
         partition = "{}{}".format(self.dev_name, number)
         if self.name.startswith('nvme'):
             partition = '{}p{}'.format(self.dev_name, number)
         return partition
 
     def is_valid_partition(self, dev_name: str):
+        '''
+        Reloads disk info and checks whether patition exists
+        
+        params:
+            dev_name: /dev/sda1, /dev/nvme0n1p1, ...
+
+        '''
         self.reload()
         is_valid = False
         if len(self.partitions) > 0:
@@ -116,12 +130,15 @@ def get_block_devices(stout=None):
     return valid_devices
 
 
-def list_block_devices(devices: List[BlockDevice]):
+def print_block_devices(devices: List[BlockDevice]):
     count = len(devices)
     if count > 0:
-        print('Found {}x hard disk(s):'.format(count))
+        print('Found {}x disk(s):'.format(count))
         for device in devices:
-            print('/dev/{} ({} Gigabyte)'.format(device.name, device.size_in_gb()))
+            if device.size_in_gb() > 19:
+                print('/dev/{} ({}GB)'.format(device.name, device.size_in_gb()))
+            else:
+                print('/dev/{} ({}GB) <- Disk is too small: Minimum should be 19GB'.format(device.name, device.size_in_gb()))
     else:
         print('Found no hard disk')
 

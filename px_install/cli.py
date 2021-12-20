@@ -5,7 +5,7 @@ import logging
 import sys
 
 from .block_devices import (get_block_device_by_name, get_block_devices,
-                            get_largest_valid_block_device, list_block_devices)
+                            get_largest_valid_block_device, print_block_devices)
 from .classes import SystemConfiguration
 from .remote_config import get_enterprise_config
 from .system_config import exit_if_system_config_exists, matching_template_is_available
@@ -42,7 +42,25 @@ def get_cl_arguments():
     enterprise_config = None
 
     '''First, a couple of helpers to aid setup'''
-    if len(sys.argv) == 2 and sys.argv[1] == 'wifi-setup':
+    if len(sys.argv) == 2 and sys.argv[1] == 'help' or len(sys.argv) == 2 and sys.argv[1] == '--help':
+        '''
+        Help
+        '''
+        print()
+        print("- 'px-install' to install with defaults")
+        print("- 'px-install run' to customize defaults via prompts")
+        print("- 'px-install --param ...' to customize defaults via params")
+        print("- 'px-install wifi-setup' to get help with WiFi setup")
+        print("- 'px-install network-check' to check what network adapters are configured and if you are online")
+        print()
+        online = is_online()
+        if online:
+            print('You appear to be online.')
+            print("Run 'px-install run' to continue with the setup.")
+        else:
+            print('You do not appear to be online.')
+        sys.exit(0)
+    elif len(sys.argv) == 2 and sys.argv[1] == 'wifi-setup':
         '''
         Wi-Fi Setup
         '''
@@ -133,7 +151,7 @@ Address: {}
         public_key = input("Specify a public key to login via SSH or leave empty. ['NONE']: ") or 'NONE'
         print("-> Selected {}".format(public_key))
         print()
-        list_block_devices(block_devices)
+        print_block_devices(block_devices)
         print()
         disk_input = input("Specify a the disk to use (Format: '/dev/<DISK>') ['{}']: ".format(default_disk_name)) or default_disk_name
         print("-> Selected {}".format(disk_input))

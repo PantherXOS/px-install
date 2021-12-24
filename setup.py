@@ -4,13 +4,13 @@ from setuptools import find_packages, setup
 
 HERE = pathlib.Path(__file__).parent
 
-VERSION = '0.0.23'
+VERSION = '0.0.24'
 PACKAGE_NAME = 'px-install'
 AUTHOR = 'Franz Geffke'
 AUTHOR_EMAIL = 'franz@pantherx.org'
 URL = 'https://git.pantherx.org/development/applications/px-install'
 
-LICENSE = ''
+LICENSE = 'GPLv3+'
 DESCRIPTION = 'A command line driven installer with sane defaults.'
 LONG_DESCRIPTION = (HERE / "README.md").read_text()
 LONG_DESC_TYPE = "text/markdown"

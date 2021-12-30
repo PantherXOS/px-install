@@ -15,9 +15,9 @@ def get_CMD_FORMAT_BIOS(disk: BlockDevice):
     cmd_format_bios = [
         [
             'parted', '-s', disk.dev_name, '--',
-            'mklabel', 'msdos',
+            'mklabel', 'gpt',
             'mkpart', 'primary', 'fat32', '0%', '10M',
-            'mkpart', 'primary', '10M', '100%'
+            'mkpart', 'primary', '10M', '99%'
         ],
         ['sgdisk', '-t', '1:ef02', disk.dev_name],
         ['sgdisk', '-t', '2:8300', disk.dev_name],

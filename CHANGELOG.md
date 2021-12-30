@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.25]
+
+### Fixed
+
+- `Command 'sgdisk -f 1:ef02 /dev/sda' returned non-zero exit status 3.`
+- Fixed an issue that would have `sgdisk` complain about partition overlap
+
 ## [0.0.23]
 
 ### Fixed

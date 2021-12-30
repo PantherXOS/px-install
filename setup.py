@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 HERE = pathlib.Path(__file__).parent
 
-VERSION = '0.0.24'
+VERSION = '0.0.25'
 PACKAGE_NAME = 'px-install'
 AUTHOR = 'Franz Geffke'
 AUTHOR_EMAIL = 'franz@pantherx.org'

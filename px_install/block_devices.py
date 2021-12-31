@@ -63,7 +63,7 @@ class BlockDevice():
 
     def is_valid_partition(self, dev_name: str):
         '''
-        Reloads disk info and checks whether patition exists
+        Checks whether patition exists
         
         params:
             dev_name: /dev/sda1, /dev/nvme0n1p1, ...
@@ -127,7 +127,7 @@ def get_block_devices(stout=None):
                 )
             )
         else:
-            print(device['name'])
+            print('Skipping block device {}.'.format(device['name']))
 
     return valid_devices
 

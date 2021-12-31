@@ -1,13 +1,10 @@
-import sys
-
 import pkg_resources
 
-from px_install.util import generate_and_print_debug_info, is_online, print_debug_qr_code
+from px_install.util import generate_and_print_debug_info
 
 from .cli import get_cl_arguments
 from .install import installation
 from .remote_config import cleanup_enterprise_config
-from .system_config import exit_if_system_config_exists
 
 version = pkg_resources.require("px_install")[0].version
 

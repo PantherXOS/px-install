@@ -19,9 +19,10 @@ def get_CMD_FORMAT_BIOS(disk: BlockDevice):
             'mkpart', 'primary', 'fat32', '0%', '10M',
             'mkpart', 'primary', '10M', '99%'
         ],
-        ['sgdisk', '-t', '1:ef02', disk.dev_name],
-        ['sgdisk', '-t', '2:8300', disk.dev_name],
-        ['parted', disk.dev_name, 'set', '1', 'boot', 'on'],
+        # ['sgdisk', '-t', '1:ef02', disk.dev_name],
+        # ['sgdisk', '-t', '2:8300', disk.dev_name],
+        # ['parted', disk.dev_name, 'set', '1', 'boot', 'on'],
+		['parted', disk.dev_name, 'set', '1', 'bios_grub', 'on'],
         ['mkfs.ext4', '-q', '-L', 'my-root', part2]
     ]
     return cmd_format_bios

@@ -69,7 +69,9 @@ class BlockDevice():
             dev_name: /dev/sda1, /dev/nvme0n1p1, ...
 
         '''
-        self.reload()
+        # Do not reload automatically; it might be triggered too frequently
+        # => Use manually instead
+        # self.reload()
         is_valid = False
         if len(self.partitions) > 0:
             for partition in self.partitions:
@@ -169,6 +171,8 @@ def get_block_device_by_name(name: str, stout=None):
         devices = get_block_devices(stout)
 
     match = None
+
+    print('Found {} block device(s).'.format(len(devices)))
 
     for device in devices:
         formatted_name = '/dev/{}'.format(device.name)

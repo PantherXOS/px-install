@@ -152,6 +152,7 @@ px-install run
 ```bash
 guix environment --pure \
 --ad-hoc python util-linux tar iproute2 coreutils
+python3 -m venv venv
 source venv/bin/activate
 pip install .
 ```

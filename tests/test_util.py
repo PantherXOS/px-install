@@ -1,7 +1,11 @@
-from px_install.block_devices import get_block_device_by_name, get_block_devices, get_largest_valid_block_device
-from px_install.classes import BlockDevice
 import unittest
-from px_install.util import convert_size_string, is_valid_hostname, is_valid_timezone, list_of_commands_to_string
+
+from px_install.block_devices import (BlockDevice, BlockDevicePartition,
+                                      get_block_device_by_name,
+                                      get_block_devices,
+                                      get_largest_valid_block_device)
+from px_install.util import (convert_size_string, is_valid_hostname,
+                             is_valid_timezone, list_of_commands_to_string)
 
 file_dir = '/tmp/px_install_test_registration'
 file_path = '{}/register_config.sh'.format(file_dir)
@@ -71,9 +75,29 @@ class TestUtil(unittest.TestCase):
         process_result = '''{\n   "blockdevices": [\n      {"name":"sda", "maj:min":"8:0", "rm":false, "size":"1.8T", "ro":false, "type":"disk", "mountpoint":null},\n      {"name":"nvme0n1", "maj:min":"259:0", "rm":false, "size":"953.9G", "ro":false, "type":"disk", "mountpoint":null,\n         "children": [\n            {"name":"nvme0n1p1", "maj:min":"259:1", "rm":false, "size":"549M", "ro":false, "type":"part", "mountpoint":"/boot/efi"},\n            {"name":"nvme0n1p2", "maj:min":"259:2", "rm":false, "size":"953.3G", "ro":false, "type":"part", "mountpoint":null,\n               "children": [\n                  {"name":"cryptroot", "maj:min":"253:0", "rm":false, "size":"953.3G", "ro":false, "type":"crypt", "mountpoint":"/"}\n               ]\n            }\n         ]\n      }\n   ]\n}\n'''
         expected = [
             BlockDevice(type='disk', name='sda', size=1800000.0),
-            BlockDevice(type='disk', name='nvme0n1', size=953900.0)
+            BlockDevice(type='disk', name='nvme0n1', size=953900.0, partitions=[BlockDevicePartition(type='part', name='nvme0n1p1', size=549.0), BlockDevicePartition(type='part', name='nvme0n1p2', size=953300.0)])
         ]
         result = get_block_devices(process_result)
+        self.assertEqual(result, expected)
+
+    def test_get_block_devices_2nd(self):
+        process_result = '''{
+   "blockdevices": [
+      {"name":"fd0", "maj:min":"2:0", "rm":true, "size":"4K", "ro":false, "type":"disk", "mountpoint":null},
+      {"name":"sda", "maj:min":"8:0", "rm":false, "size":"32G", "ro":false, "type":"disk", "mountpoint":null,
+         "children": [
+            {"name":"sda1", "maj:min":"8:1", "rm":false, "size":"9M", "ro":false, "type":"part", "mountpoint":null},
+            {"name":"sda2", "maj:min":"8:2", "rm":false, "size":"31.7G", "ro":false, "type":"part", "mountpoint":"/mnt"}
+         ]
+      },
+      {"name":"sr0", "maj:min":"11:0", "rm":true, "size":"1.1G", "ro":false, "type":"rom", "mountpoint":null}
+   ]
+}'''
+        expected = [
+            BlockDevice(type='disk', name='sda', size=32000.0, partitions=[BlockDevicePartition(type='part', name='sda1', size=9.0), BlockDevicePartition(type='part', name='sda2', size=31700.0)])
+        ]
+        result = get_block_devices(process_result)
+        self.maxDiff = None
         self.assertEqual(result, expected)
 
     def test_get_largest_valid_block_device(self):

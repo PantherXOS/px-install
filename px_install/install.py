@@ -82,7 +82,7 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
     if firmware == 'efi':
         run_commands(get_CMD_FORMAT_EFI(config.disk), show_progress=False)
 
-    time.sleep(5)
+    time.sleep(2)
 
     print('=> (2) Mounting partitions ...')
     run_commands(CMD_PREP_INSTALL)

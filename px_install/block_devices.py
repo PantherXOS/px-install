@@ -127,7 +127,8 @@ def get_block_devices(stout=None):
                 )
             )
         else:
-            print('Skipping block device {}.'.format(device['name']))
+            pass
+            # print('Skipping block device {}.'.format(device['name']))
 
     return valid_devices
 

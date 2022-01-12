@@ -83,19 +83,19 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
         run_commands(get_CMD_FORMAT_EFI(config.disk), show_progress=False)
 
     # Testing ...
-    time.sleep(1)
+    time.sleep(2)
 
     print('=> (2) Mounting partitions ...')
     run_commands(CMD_PREP_INSTALL)
 
     # Testing ...
-    time.sleep(1)
+    time.sleep(2)
 
     print('=> (3) Creating SWAP file ...')
     run_commands(CMD_CREATE_SWAP, show_progress=False)
 
     # Testing ...
-    time.sleep(1)
+    time.sleep(2)
 
     if is_enterprise_config:
         move_enterprise_system_config()
@@ -106,7 +106,7 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
         write_system_channels()
 
     # Testing ...
-    time.sleep(1)
+    time.sleep(2)
 
     pre_install_environment_check(config)
 

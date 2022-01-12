@@ -169,9 +169,20 @@ def generate_and_print_debug_info(config, version, error=''):
     Collect some debugging info to include in the QR code
     '''
     error_truncate = (error[:200] + '..') if len(error) > 200 else error
+
+    cpu = ''
+
+    cpu_info_result = cpuinfo.get_cpu_info()
+    if 'brand_raw' in cpu_info_result:
+        cpu = cpu_info_result['brand_raw']
+    elif 'vendor_id_raw' in cpu_info_result:
+        cpu = cpu_info_result['vendor_id_raw']
+    else:
+        cpu = 'Unknown'
+
     debug_output = {
         'v': version,
-        'c': cpuinfo.get_cpu_info()['brand_raw'],
+        'c': cpu,
         'f': config.firmware,
         # 'l': config.locale,
         'd': config.disk.name,

@@ -66,9 +66,12 @@ CMD_CREATE_SWAP = [
     ['swapon', '/mnt/swapfile']
 ]
 
-CMD_INSTALL = [
+CMD_INSTALL_PULL = [
     ['guix', 'pull', '--channels=/mnt/etc/guix/channels.scm', '--disable-authentication'],
     ['hash', 'guix'],
+]
+
+CMD_INSTALL = [
     ['guix', 'system', 'init', '/mnt/etc/system.scm', '/mnt']
 ]
 
@@ -112,7 +115,8 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
 
     print('=> (5) Starting installation ...')
     print('Depending on your internet connection speed and system performance, this operation will take 10 to 90 minutes.')
-    run_commands(CMD_INSTALL)
+    run_commands(CMD_INSTALL_PULL, allow_retry=True)
+    run_commands(CMD_INSTALL, allow_retry=True)
 
     print()
     print("PantherX OS has been installed successfully.")

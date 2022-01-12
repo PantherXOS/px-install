@@ -94,16 +94,18 @@ def run_commands(commands: list, show_progress: bool = True, allow_retry: bool =
     elif allow_retry:
         for command in commands:
             command_string = list_of_commands_to_string(command)
-            res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL, check=True)
-            if res.stderr:
-                print(res.stderr)
-
+            try:
+                res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL, check=True)
+                if res.stderr:
+                    print(res.stderr)
+                    raise Exception(res.stderr)
+            except Exception as err:
                 print('Something went wrong ...')
                 print('Would you like to retry the last operation? In case of network issues, this usually helps.')
                 print()
                 approved = input("Retry last operation? 'yes'; cancel with 'no': ")
                 if approved.lower() != 'yes':
-                    raise Exception(res.stderr)
+                    raise err
                 else:
                     run_commands(commands, allow_retry=True)
     else:

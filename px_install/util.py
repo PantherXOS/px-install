@@ -76,7 +76,32 @@ def list_of_commands_to_string(command: list):
     return final
 
 
-def run_commands(commands: list, show_progress: bool = True, allow_retry: bool = False):
+def _run_command_process(command_string: str):
+    result = None
+    error = None
+
+    res = subprocess.run(command_string, shell=True, capture_output=True)
+
+    if res.stderr:
+        try:
+            error = res.stderr.decode()
+        except:
+            error = res.stderr
+    elif res.returncode > 0:
+        error = 'Command exist with error code: {}'.format(res.returncode)
+    elif res.stdout:
+        try:
+            result = res.stdout.decode()
+        except:
+            result = res.stdout
+    
+    return {
+        'result': result,
+        'error': error
+    }
+
+
+def run_commands(commands: list, allow_retry: bool = False, show_progress: bool = False):
     '''
     Execute an array of commands
     
@@ -84,37 +109,35 @@ def run_commands(commands: list, show_progress: bool = True, allow_retry: bool =
         commands: a list of commands: [['ls', '-a'], ['ls']]
         show_progress: whether to show a progress bar, for the list of commands
     '''
-    if show_progress:
-        for command in tqdm(commands):
-            command_string = list_of_commands_to_string(command)
-            res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL, check=True)
-            if res.stderr:
-                print(res.stderr)
-                raise Exception(res.stderr)
-    elif allow_retry:
-        for command in commands:
-            command_string = list_of_commands_to_string(command)
-            try:
-                res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL, check=True)
-                if res.stderr:
-                    print(res.stderr)
-                    raise Exception(res.stderr)
-            except Exception as err:
-                print('Something went wrong ...')
-                print('Would you like to retry the last operation? In case of network issues, this usually helps.')
-                print()
-                approved = input("Retry last operation? 'yes'; cancel with 'no': ")
-                if approved.lower() != 'yes':
-                    raise err
+
+    for command in commands:
+        is_done = False
+        command_string = list_of_commands_to_string(command)
+        
+        while not is_done:
+            result = _run_command_process(command_string)
+            if result['error']:
+                if allow_retry:
+                    print('''
+Something went wrong ...
+
+#########
+
+{}
+
+########
+
+Would you like to retry the last operation? 
+This usually helps in case of network hikkups.
+                    '''.format(result['error']))
+                    retry = input("Retry last operation? 'yes' to retry; 'no' to cancel [yes/no]: ")
+                    user_input = retry.lower()
+                    if user_input != 'yes' and user_input != 'retry':
+                        raise Exception(result['error'])
                 else:
-                    run_commands(commands, allow_retry=True)
-    else:
-        for command in commands:
-            command_string = list_of_commands_to_string(command)
-            res = subprocess.run(command_string, shell=True, stdout=subprocess.DEVNULL, check=True)
-            if res.stderr:
-                print(res.stderr)
-                raise Exception(res.stderr)
+                    raise Exception(result['error'])
+            else:
+                is_done = True
 
 
 def convert_size_string(value: str):
@@ -131,6 +154,9 @@ def convert_size_string(value: str):
     elif 'M' in value:
         clean = value[:-1]
         size = float(clean)
+    elif 'K' in value:
+        clean = value[:-1]
+        size = float(clean) / 1000
     else:
         raise ValueError('Could not convert {} to a number.'.format(value))
     return size
@@ -145,18 +171,21 @@ def pre_install_environment_check(config):
 
     Raises an EnvironmentError in case any check fails
     '''
-    disk = config.disk
-    disk.reload()
+
+	# TODO: Disk check is disabled due to many errors reloading disk partitions info
+	# Could not reload block device /dev/nvme0n1
+    # disk = config.disk
+    # disk.reload()
 
     errors = []
 
-    data_partition = disk.get_partition_dev_name(2)
-    data_partition_valid = disk.is_valid_partition(data_partition)
-    if disk.size_in_gb() < 19:
-        errors.append('The selected disk {} is not large enough to comfortably run this operating system.')
+    # data_partition = disk.get_partition_dev_name(2)
+    # data_partition_valid = disk.is_valid_partition(data_partition)
+    # if disk.size_in_gb() < 19:
+    #     errors.append('The selected disk {} is not large enough to comfortably run this operating system.')
 
-    if not data_partition_valid:
-        errors.append('Partition {} does not exist')
+    # if not data_partition_valid:
+    #     errors.append('Partition {} does not exist')
 
     swap_file_found = os.path.isfile('/mnt/swapfile')
     if not swap_file_found:

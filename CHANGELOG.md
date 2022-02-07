@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.31]
+
+### Fixed
+
+- Fixed an error where partition size `K`; for ex. `1007K` would raise an error
+- Actually retry (finally). The correct loop never ran.
+
+### Changed
+
+- The way subprocess related commands are handled
+- Reloading disk info during pre-install check has been disabled (too many issues with `lsblk` responses)
+
 ## [0.0.30]
 
 ### Fixed

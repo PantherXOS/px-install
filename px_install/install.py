@@ -81,9 +81,9 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
 
     print('=> (1) Formatting hard disk {} ...'.format(config.disk.dev_name))
     if firmware == 'bios':
-        run_commands(get_CMD_FORMAT_BIOS(config.disk), show_progress=False)
+        run_commands(get_CMD_FORMAT_BIOS(config.disk))
     if firmware == 'efi':
-        run_commands(get_CMD_FORMAT_EFI(config.disk), show_progress=False)
+        run_commands(get_CMD_FORMAT_EFI(config.disk))
 
     # Testing ...
     time.sleep(2)
@@ -95,7 +95,7 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
     time.sleep(2)
 
     print('=> (3) Creating SWAP file ...')
-    run_commands(CMD_CREATE_SWAP, show_progress=False)
+    run_commands(CMD_CREATE_SWAP)
 
     # Testing ...
     time.sleep(2)

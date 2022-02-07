@@ -81,14 +81,15 @@ def _run_command_process(command_string: str):
     error = None
 
     res = subprocess.run(command_string, shell=True, capture_output=True)
+    returncode = res.returncode
 
-    if res.stderr:
+    if res.stderr and returncode > 0:
         try:
             error = res.stderr.decode()
         except:
             error = res.stderr
     elif res.returncode > 0:
-        error = 'Command exist with error code: {}'.format(res.returncode)
+        error = 'Command exited with error code: {}.'.format(res.returncode)
     elif res.stdout:
         try:
             result = res.stdout.decode()
@@ -172,8 +173,8 @@ def pre_install_environment_check(config):
     Raises an EnvironmentError in case any check fails
     '''
 
-	# TODO: Disk check is disabled due to many errors reloading disk partitions info
-	# Could not reload block device /dev/nvme0n1
+    # TODO: Disk check is disabled due to many errors reloading disk partitions info
+    # Could not reload block device /dev/nvme0n1
     # disk = config.disk
     # disk.reload()
 

@@ -144,6 +144,8 @@ guix package -i python
 python3 -m venv venv
 source venv/bin/activate
 pip3 install https://source.pantherx.org/px-install_v<LATEST_VERSION>.tgz
+# for ex.:
+# pip3 install https://source.pantherx.org/px-install_v0.0.31.tgz
 px-install run
 ```
 

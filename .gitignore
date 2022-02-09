@@ -144,3 +144,7 @@ cython_debug/
 *.tar.gz
 .config.sh
 test.py
+
+scripts/resources_*
+!scripts/resources
+last_good_config.txt

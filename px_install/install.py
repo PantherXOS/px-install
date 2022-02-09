@@ -2,8 +2,8 @@
 
 import time
 from .classes import BlockDevice, SystemConfiguration
-from .remote_config import (move_enterprice_channels,
-                            move_enterprise_system_config)
+from .remote_config import (copy_enterprise_channels, copy_enterprise_helper_scripts,
+                            copy_enterprise_system_config)
 from .system_channels import write_system_channels
 from .system_config import write_system_config
 from .util import pre_install_environment_check, run_commands
@@ -101,8 +101,10 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
     time.sleep(2)
 
     if is_enterprise_config:
-        move_enterprise_system_config()
-        move_enterprice_channels()
+        print('=> (4) Writing enterprise system configuration ...')
+        copy_enterprise_system_config()
+        copy_enterprise_channels()
+        copy_enterprise_helper_scripts()
     else:
         print('=> (4) Writing system configuration ...')
         write_system_config(config)

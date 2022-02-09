@@ -65,12 +65,14 @@ def get_enterprise_config(config_id: str, url: str = 'https://temp.pantherx.org/
     config_archive = '{}/config.tar.gz'.format(path)
     config_dir = '{}/config'.format(path)
     download_url = '{}/{}.tar.gz'.format(url, config_id)
+    print('=> Downloading enterprise config from {} to {}.'.format(download_url, config_archive))
     with get(download_url) as download:
         download.raise_for_status()
         with open(config_archive, 'wb') as file:
             file.write(download.content)
 
     os.makedirs(config_dir)
+    print('=> Extracting enterprise config from {} to {}'.format(config_archive, config_dir))
     subprocess.run(['tar', '-xvzf', config_archive, '-C', config_dir], check=True)
 
     config_path = '{}/config/config.json'.format(path)
@@ -78,23 +80,43 @@ def get_enterprise_config(config_id: str, url: str = 'https://temp.pantherx.org/
     return config
 
 
-def move_enterprise_system_config(src: str = '/root/config/system.scm', dest: str = '/mnt/etc/system.scm'):
-    '''move the system config from the extracted archive to the final location'''
-    shutil.copy(src, dest)
-
-
-def move_enterprice_channels(src: str = '/root/config/channels/scm', dest_path: str = '/mnt/etc/guix', dest_file: str = 'channels.scm'):
-    '''move the channels config from the extracted archive to the final location (create if necessary)'''
+def copy_enterprise_system_config(src: str = '/root/config/system.scm', dest_path: str = '/mnt/etc', dest_file: str = 'system.scm'):
+    '''copy the system config from the extracted archive to the final location'''
     if not os.path.isdir(dest_path):
         os.makedirs(dest_path)
     dest = "{}/{}".format(dest_path, dest_file)
+    print('=> Copying system config to {}.'.format(dest))
     shutil.copy(src, dest)
+
+
+def copy_enterprise_channels(src: str = '/root/config/channels.scm', dest_path: str = '/mnt/etc/guix', dest_file: str = 'channels.scm'):
+    '''copy the channels config from the extracted archive to the final location (create if necessary)'''
+    if not os.path.isdir(dest_path):
+        os.makedirs(dest_path)
+    dest = "{}/{}".format(dest_path, dest_file)
+    print('=> Copying channels to {}.'.format(dest))
+    shutil.copy(src, dest)
+
+
+def copy_enterprise_helper_scripts(src_path: str = '/root/config', dest_path: str = '/mnt/etc'):
+    '''copy the channels config from the extracted archive to the final location (create if necessary)'''
+    if not os.path.isdir(dest_path):
+        os.makedirs(dest_path)
+    # TODO: Copy all scripts from src_path
+    src = "{}/{}".format(src_path, 'register.sh')
+    if os.path.isfile(src):
+        dest = "{}/{}".format(dest_path, 'register.sh')
+        print('=> Copying helper scripts to {}.'.format(dest))
+        shutil.copy(src, dest)
 
 
 def cleanup_enterprise_config(dir: str = '/root'):
     '''cleanup enterprise config archive and extracted folder'''
     config_archive = '{}/config.tar.gz'.format(dir)
     config_path = '{}/config'.format(dir)
-    os.remove(config_archive)
-    # os.rmdir(config_path)
-    shutil.rmtree(config_path)
+    print('=> Cleaning up enterprise config files')
+    try:
+        os.remove(config_archive)
+        shutil.rmtree(config_path)
+    except:
+        print('Could not remove all enterprise config files.')

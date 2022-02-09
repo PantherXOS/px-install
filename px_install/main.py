@@ -33,9 +33,6 @@ def main():
         print()
         print('To get help, visit https://community.pantherx.org/')
         print('Scan the QR code, to easily share your setup-related information.')
-    finally:
-        if is_enterprise_config:
-            cleanup_enterprise_config()
 
 
 if __name__ == '__main__':

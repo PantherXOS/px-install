@@ -76,6 +76,19 @@ def list_of_commands_to_string(command: list):
     return final
 
 
+
+def decode_return_value(value: bytes):
+	try:
+		result = value.decode()
+		if value != '':
+			return result
+	except:
+		if value != '':
+			return value
+	
+	return None
+
+
 def _run_command_process(command_string: str):
     result = None
     error = None

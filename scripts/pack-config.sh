@@ -1,12 +1,15 @@
 echo "Make sure to run this from within ./scripts directory!"
 
-
-read -p "Channels file (full path) [./ressources/channels.scm]: " CHANNELS_FILE 
-CHANNELS_FILE=${CHANNELS_FILE:-'./ressources/channels.scm'}
+read -p "Device Model (Thinkstation 625, Onlogic, Calmo) [Onlogic]: " DEVICE_MODEL
+DEVICE_MODEL=${CHANNELS_FILE:-'Onlogic'}
 echo $CHANNELS_FILE
 
-read -p "System config file (full path) [./ressources/system.scm]: " CONFIG_FILE 
-CONFIG_FILE=${CONFIG_FILE:-'./ressources/system.scm'}
+read -p "Channels file (full path) [./resources/channels.scm]: " CHANNELS_FILE 
+CHANNELS_FILE=${CHANNELS_FILE:-'./resources/channels.scm'}
+echo $CHANNELS_FILE
+
+read -p "System config file (full path) [./resources/system.scm]: " CONFIG_FILE 
+CONFIG_FILE=${CONFIG_FILE:-'./resources/system.scm'}
 echo $CONFIG_FILE
 
 ## Registration specific
@@ -35,6 +38,10 @@ read -p "Device location [Office]: " DEVICE_LOCATION
 DEVICE_LOCATION=${DEVICE_LOCATION:-'Office'}
 echo $DEVICE_LOCATION
 
+read -p "Time zone [Europe/Berlin]: " TIME_ZONE 
+TIME_ZONE=${TIME_ZONE:-'Europe/Berlin'}
+echo $TIME_ZONE
+
 PACK_SETUP_FILE_ID=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 10)
 PACK_SETUP_FILE_NAME="${PACK_SETUP_FILE_ID}.tar.gz"
 
@@ -59,14 +66,14 @@ echo "Channels file: ${CHANNELS_FILE}"
 
 cp $CHANNELS_FILE "${TEMP}/channels.scm"
 ## ADJUST SYSTEM HERE
-cp $CONFIG_FILE "${TEMP}/config.scm"
+cp $CONFIG_FILE "${TEMP}/system.scm"
 ##
 # cp ../configuration/system.scm $TEMP
 
 cat >$TEMP/config.json <<EOL
 {
-	"type":"ENTERPRISE",
-	"timezone":"Europe/Berlin",
+	"type":"${DEVICE_ROLE}",
+	"timezone":"${TIME_ZONE}",
 	"locale":"en_US.utf8",
 	"title":"${DEVICE_NAME}",
 	"location":"${DEVICE_LOCATION}",
@@ -77,9 +84,13 @@ cat >$TEMP/config.json <<EOL
 }
 EOL
 
-cp './ressources/register.sh' $TEMP
+cp './resources/register.sh' $TEMP
 
 tar -cvzf ${PACK_SETUP_FILE_NAME} -C $TEMP .
+
+DATE=$(date)
+GOOD_CONFIG="${DATE}, ${DEVICE_MODEL}, ${AUTH_SERVER_URL}, ${PACK_SETUP_FILE_ID}"
+echo $GOOD_CONFIG >> last_good_config.txt
 
 echo "########"
 echo ""

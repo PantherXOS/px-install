@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.33]
+
+### Changed
+
+- More verbose output when using enterprise config
+- No longer delete enterprise config source to ease troubleshooting
+
 ## [0.0.32]
 
 ### Fixed

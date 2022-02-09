@@ -53,7 +53,7 @@ px-install --type DESKTOP \
 Enterprise config overwrite (fully automated):
 
 ```bash
-px install --config abd1uc3z
+px-install --config abd1uc3z
 ```
 
 Refer to `scripts/README.md` for more on enterprise configuration.
@@ -147,6 +147,13 @@ pip3 install https://source.pantherx.org/px-install_v<LATEST_VERSION>.tgz
 # for ex.:
 # pip3 install https://source.pantherx.org/px-install_v0.0.32.tgz
 px-install run
+```
+
+**Note** If `python3 -m venv venv` throws an error like this, just ignore it:
+
+```bash
+Error in sitecustomize; set PYTHONVERBOSE for traceback:
+ValueError: '/root/.guix-profile/lib/python3.9/site-packages' is not in list
 ```
 
 ### Development

@@ -237,32 +237,62 @@ Address: {}
     if disk is None:
         raise EnvironmentError('Selected disk {} does not exist.'.format(disk_input))
 
-    config = SystemConfiguration(
-        type=type,
-        firmware=firmware.lower(),
-        hostname=hostname,
-        timezone=timezone,
-        locale=locale,
-        username=username,
-        password=password,
-        public_key=public_key,
-        disk=disk
-    )
+    config = None
 
-    print()
-    print('######## SUMMARY ########')
-    print()
-    print("Type: {}".format(config.type))
-    print("Firmware: {}".format(config.firmware))
-    print("Hostname: {}".format(config.hostname))
-    print("Locale: {}".format(config.locale))
-    print("Username: {}".format(config.username))
-    print("Password: {}".format(config.password))
-    print("Public key: {}".format(config.public_key))
-    print("Disk: {} ({} Gigabyte)".format(config.disk.dev_name, disk.size_in_gb()))
-    print()
+    if enterprise_config:
+        config = SystemConfiguration(
+            type=enterprise_config.type,
+            firmware=firmware.lower(),
+            hostname=hostname,
+            timezone=enterprise_config.timezone,
+            locale=enterprise_config.locale,
+            username=username,
+            password=password,
+            public_key=public_key,
+            disk=disk
+        )
 
-    matching_template_is_available(config)
+        print()
+        print('######## SUMMARY ########')
+        print()
+        print("Type: {}".format(config.type))
+        print("Firmware: {}".format(config.firmware))
+        print("Hostname: {}".format(config.hostname))
+        print("Locale: {}".format(config.locale))
+        print("Time Zone: {}".format(config.timezone))
+        # print("Username: {}".format(config.username))
+        # print("Password: {}".format(config.password))
+        # print("Public key: {}".format(config.public_key))
+        print("Disk: {} ({} Gigabyte)".format(config.disk.dev_name, disk.size_in_gb()))
+        print()
+
+    else:
+        config = SystemConfiguration(
+            type=type,
+            firmware=firmware.lower(),
+            hostname=hostname,
+            timezone=timezone,
+            locale=locale,
+            username=username,
+            password=password,
+            public_key=public_key,
+            disk=disk
+        )
+        matching_template_is_available(config)
+
+        print()
+        print('######## SUMMARY ########')
+        print()
+        print("Type: {}".format(config.type))
+        print("Firmware: {}".format(config.firmware))
+        print("Hostname: {}".format(config.hostname))
+        print("Locale: {}".format(config.locale))
+        print("Time Zone: {}".format(config.timezone))
+        print("Username: {}".format(config.username))
+        print("Password: {}".format(config.password))
+        print("Public key: {}".format(config.public_key))
+        print("Disk: {} ({} Gigabyte)".format(config.disk.dev_name, disk.size_in_gb()))
+        print()
 
     print('IMPORTANT: Your hard disk {} will be formatted and all data lost!'.format(config.disk.dev_name))
     print('Would you like to continue?')

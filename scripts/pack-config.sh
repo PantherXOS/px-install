@@ -26,7 +26,7 @@ read -p "Auth server domain [pantherx.org]: " AUTH_SERVER_DOMAIN
 AUTH_SERVER_DOMAIN=${AUTH_SERVER_DOMAIN:-'pantherx.org'}
 echo $AUTH_SERVER_DOMAIN
 
-read -p "Device role (PUBLIC|DESKTOP|SERVER|ADMIN_TERMINAL|REGISTRATION_TERMINAL|SELF) [DESKTOP]: " DEVICE_ROLE 
+read -p "Device role (PUBLIC|DESKTOP|SERVER|ADMIN_TERMINAL|REGISTRATION_TERMINAL|OTHER|SELF) [DESKTOP]: " DEVICE_ROLE 
 DEVICE_ROLE=${DEVICE_ROLE:-'DESTKOP'}
 echo $DEVICE_ROLE
 
@@ -79,12 +79,11 @@ cat >$TEMP/config.json <<EOL
 	"location":"${DEVICE_LOCATION}",
 	"role":"${DEVICE_ROLE}",
 	"key_security":"${DEVICE_SECURITY}",
+	"key_type":"RSA:2048",
 	"domain":"${AUTH_SERVER_DOMAIN}",
 	"host":"${AUTH_SERVER_URL}"
 }
 EOL
-
-cp './resources/register.sh' $TEMP
 
 tar -cvzf ${PACK_SETUP_FILE_NAME} -C $TEMP .
 

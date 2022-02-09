@@ -14,47 +14,27 @@ def write_json_config(config: RemoteConfig, path: str = '/root/config/config.jso
     '''Write config (mostly for testing)'''
     config_json = json.dumps(config, cls=EnhancedJSONEncoder)
 
-    with open(path, 'w') as file:
-        file.write(config_json)
+    with open(path, 'w') as writer:
+        writer.write(config_json)
 
 def read_json_config(path: str = '/root/config/config.json'):
     '''Read config from extracted archive'''
-    type = None
-    timezone = None
-    locale = None
-    title = None
-    location = None
-    role = None
-    key_security = None
-    key_type = None
-    domain = None
-    host = None
-
-    with open(path, 'r') as file:
-        json_content = file.read()
-        content = json.loads(json_content)
-        type = content['type']
-        timezone = content['timezone']
-        locale = content['locale']
-        title = content['title']
-        location = content['location']
-        role = content['role']
-        key_security = content['key_security']
-        key_type = 'RSA:2048'
-        domain = content['domain']
-        host = content['host']
+    content_dict = None
+    with open(path, 'r') as reader:
+        file_content = reader.read()
+        content_dict = json.loads(file_content)
 
     config = RemoteConfig(
-        type,
-        timezone,
-        locale,
-        title,
-        location,
-        role,
-        key_security,
-        key_type,
-        domain,
-        host
+        type=content_dict['type'],
+        timezone=content_dict['timezone'],
+        locale=content_dict['locale'],
+        title=content_dict['title'],
+        location=content_dict['location'],
+        role=content_dict['role'],
+        key_security=content_dict['key_security'],
+        key_type=content_dict['key_type'],
+        domain=content_dict['domain'],
+        host=content_dict['host']
     )
 
     return config
@@ -98,15 +78,14 @@ def copy_enterprise_channels(src: str = '/root/config/channels.scm', dest_path: 
     shutil.copy(src, dest)
 
 
-def copy_enterprise_helper_scripts(src_path: str = '/root/config', dest_path: str = '/mnt/etc'):
-    '''copy the channels config from the extracted archive to the final location (create if necessary)'''
+def copy_enterprise_json_config(src_path: str = '/root/config', dest_path: str = '/mnt/etc'):
+    '''copy the json config from the extracted archive to the final location (create if necessary)'''
     if not os.path.isdir(dest_path):
         os.makedirs(dest_path)
-    # TODO: Copy all scripts from src_path
-    src = "{}/{}".format(src_path, 'register.sh')
+    src = "{}/{}".format(src_path, 'config.json')
     if os.path.isfile(src):
-        dest = "{}/{}".format(dest_path, 'register.sh')
-        print('=> Copying helper scripts to {}.'.format(dest))
+        dest = "{}/{}".format(dest_path, 'config.json')
+        print('=> Copying json config to {}.'.format(dest))
         shutil.copy(src, dest)
 
 

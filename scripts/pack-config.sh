@@ -1,7 +1,7 @@
 echo "Make sure to run this from within ./scripts directory!"
 
 read -p "Device Model (Thinkstation 625, Onlogic, Calmo) [Onlogic]: " DEVICE_MODEL
-DEVICE_MODEL=${CHANNELS_FILE:-'Onlogic'}
+DEVICE_MODEL=${DEVICE_MODEL:-'Onlogic'}
 echo $CHANNELS_FILE
 
 read -p "Channels file (full path) [./resources/channels.scm]: " CHANNELS_FILE 

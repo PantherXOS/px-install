@@ -148,3 +148,5 @@ test.py
 scripts/resources_*
 !scripts/resources
 last_good_config.txt
+
+pack-config_*.sh

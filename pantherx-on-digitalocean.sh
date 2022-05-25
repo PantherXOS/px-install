@@ -5,6 +5,7 @@
 # Test on:
 # - Ubuntu 21.04
 # - Debian 11
+# - Debian 9 (see comments ~ line 48)
 #
 # 1. Create a new Droplet with Debian 11
 # 2. Login with SSH
@@ -18,7 +19,7 @@
 
 ###### MODIFY
 
-TIMEZONE="Asia/Bangkok"
+TIMEZONE="Europe/Berlin"
 LOCALE="en_US.utf8"
 USERNAME="panther"
 USER_COMMENT="panther's account"

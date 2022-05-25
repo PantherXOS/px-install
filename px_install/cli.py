@@ -36,6 +36,7 @@ def get_cl_arguments():
     password = ''
     public_key = 'NONE'
     disk = ''
+    use_disk_encryption = False
 
     is_enterprise_config = False
     enterprise_config_id = None
@@ -69,7 +70,8 @@ def get_cl_arguments():
             sys.exit(1)
         wifi_config = prompt_for_wifi_config()
         write_wifi_config(wifi_config)
-        install_wpa_supplicant()
+        # TODO: Fails with "unknown package"; should already be installed
+		# install_wpa_supplicant()
         print_wifi_help()
         sys.exit(0)
     elif len(sys.argv) == 2 and sys.argv[1] == 'network-check':
@@ -155,6 +157,14 @@ Address: {}
         print()
         disk_input = input("Specify a the disk to use (Format: '/dev/<DISK>') ['{}']: ".format(default_disk_name)) or default_disk_name
         print("-> Selected {}".format(disk_input))
+        print()
+        disk_encryption = input("Enable full disk encryption? ('yes', 'no') ['{}']: ".format('no')) or 'no'
+        print("-> Selected {}".format(disk_encryption.lower()))
+        if disk_encryption.lower() == 'yes':
+            print()
+            print('Note: You have selected to encrypt your hard disk. You will be prompted for a disk encryption password moments after the installation starts.')
+            print()
+            use_disk_encryption = True
     else:
         '''
         Run setup with params
@@ -192,6 +202,12 @@ Address: {}
         parser.add_argument("-d", "--disk", type=str, default=default_disk_name,
                             help="Specify the disk to use. Defaults to '{}'".format(default_disk_name)
                             )
+        parser.add_argument("-de", "--disk_encryption", type=bool, default=False,
+                            help="Use full disk encryption. Defaults to False"
+                            )
+        parser.add_argument("-depw", "--disk_encryption_password", type=str,
+                            help="Use full disk encryption. Defaults to False"
+                            )
         parser.add_argument("-c", "--config", type=str,
                             help="Specify a enterprise config ID. This will overwrite all other settings."
                             )
@@ -217,6 +233,12 @@ Address: {}
         password = args.password
         public_key = args.key
         disk_input = args.disk
+        disk_encryption = args.disk_encryption
+        if disk_encryption is True or disk_encryption == 'True':
+            print()
+            print('Note: You have selected to encrypt your hard disk. You will be prompted for a disk encryption password moments after the installation starts.')
+            print()
+            use_disk_encryption = True
 
         if args.config:
             is_enterprise_config = True
@@ -249,7 +271,8 @@ Address: {}
             username=username,
             password=password,
             public_key=public_key,
-            disk=disk
+            disk=disk,
+            use_disk_encryption=use_disk_encryption
         )
 
         print()
@@ -276,7 +299,8 @@ Address: {}
             username=username,
             password=password,
             public_key=public_key,
-            disk=disk
+            disk=disk,
+            use_disk_encryption=use_disk_encryption
         )
         matching_template_is_available(config)
 
@@ -291,7 +315,10 @@ Address: {}
         print("Username: {}".format(config.username))
         print("Password: {}".format(config.password))
         print("Public key: {}".format(config.public_key))
-        print("Disk: {} ({} Gigabyte)".format(config.disk.dev_name, disk.size_in_gb()))
+        if use_disk_encryption:
+            print("Disk: {} ({} Gigabyte) - Encrypted".format(config.disk.dev_name, disk.size_in_gb()))
+        else:
+            print("Disk: {} ({} Gigabyte)".format(config.disk.dev_name, disk.size_in_gb()))
         print()
 
     print('IMPORTANT: Your hard disk {} will be formatted and all data lost!'.format(config.disk.dev_name))

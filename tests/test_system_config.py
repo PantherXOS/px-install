@@ -17,10 +17,11 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'NONE'
-        disk = BlockDevice(type='disk', name='/dev/sda', size=100000)
+        disk = BlockDevice(type='disk', name='sda', size=100000)
         
+        use_disk_encryption = False
         config = SystemConfiguration(
-            type, firmware, hostname, timezone, locale, username, password, public_key, disk
+            type, firmware, hostname, timezone, locale, username, password, public_key, disk, use_disk_encryption
         )
 
         res = get_template_filename(config)
@@ -36,10 +37,11 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'ssh-ed25519 AAAAC'
-        disk = BlockDevice(type='disk', name='/dev/sda', size=100000)
+        disk = BlockDevice(type='disk', name='sda', size=100000)
         
+        use_disk_encryption = False
         config = SystemConfiguration(
-            type, firmware, hostname, timezone, locale, username, password, public_key, disk
+            type, firmware, hostname, timezone, locale, username, password, public_key, disk, use_disk_encryption
         )
 
         res = get_template_filename(config)
@@ -55,10 +57,11 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'NONE'
-        disk = BlockDevice(type='disk', name='/dev/sda', size=100000)
+        disk = BlockDevice(type='disk', name='sda', size=100000)
         
+        use_disk_encryption = False
         config = SystemConfiguration(
-            type, firmware, hostname, timezone, locale, username, password, public_key, disk
+            type, firmware, hostname, timezone, locale, username, password, public_key, disk, use_disk_encryption
         )
 
         res = get_template_filename(config)
@@ -74,10 +77,11 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'ssh-ed25519 AAAAC'
-        disk = BlockDevice(type='disk', name='/dev/sda', size=100000)
+        disk = BlockDevice(type='disk', name='sda', size=100000)
         
+        use_disk_encryption = False
         config = SystemConfiguration(
-            type, firmware, hostname, timezone, locale, username, password, public_key, disk
+            type, firmware, hostname, timezone, locale, username, password, public_key, disk, use_disk_encryption
         )
 
         res = get_template_filename(config)
@@ -93,10 +97,11 @@ class TestSystemConfig(unittest.TestCase):
         username = 'pantherx'
         password = 'pantherx'
         public_key = 'NONE'
-        disk = BlockDevice(type='disk', name='/dev/sda', size=100000)
+        disk = BlockDevice(type='disk', name='sda', size=100000)
         
+        use_disk_encryption = False
         config = SystemConfiguration(
-            type, firmware, hostname, timezone, locale, username, password, public_key, disk
+            type, firmware, hostname, timezone, locale, username, password, public_key, disk, use_disk_encryption
         )
 
         os.makedirs(config_dir)
@@ -117,3 +122,38 @@ class TestSystemConfig(unittest.TestCase):
 
         os.remove(config_path)
         os.removedirs(config_dir)
+
+    def test_write_system_config_efi_encrypted(self):
+        type = 'DESKTOP'
+        firmware = 'efi'
+        hostname = 'hostname'
+        timezone = 'Europe/Berlin'
+        locale = 'en_US.utf8'
+        username = 'pantherx'
+        password = 'pantherx'
+        public_key = 'NONE'
+        disk = BlockDevice(type='disk', name='nvme0n1', size=100000)
+        
+        use_disk_encryption = True
+        config = SystemConfiguration(
+            type, firmware, hostname, timezone, locale, username, password, public_key, disk, use_disk_encryption
+        )
+
+        os.makedirs(config_dir)
+        print(config_path)
+        write_system_config(config, config_path)
+
+        # VERIFY
+
+        system_config_file = open(config_path, 'r')
+        config_list = system_config_file.readlines()
+        system_config_file.close()
+        found = False
+        for line in config_list:
+            if str('(host-name "{}")'.format(hostname)) in line:
+                found = True
+                
+        self.assertTrue(found)
+
+        # os.remove(config_path)
+        # os.removedirs(config_dir)

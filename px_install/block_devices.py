@@ -2,23 +2,28 @@
 import json
 import subprocess
 from dataclasses import dataclass
-from typing import List
+from typing import List, Union
 
-from px_install.util import convert_size_string
+from .util import convert_size_string, _run_command_process
 
 
 @dataclass
 class BlockDevicePartition():
     type: str
     name: str
+    uuid: str
     size: float
     dev_name: str
 
-    def __init__(self, type: str, name: str, size: float):
+    def __init__(self, type: str, name: str, uuid: str, size: float, path: Union[None, str]):
         self.type = type
         self.name = name
+        self.uuid = uuid
         self.size = size
-        self.dev_name = '/dev/{}'.format(name)
+        if path:
+            self.dev_name = path
+        else:
+            self.dev_name = '/dev/{}'.format(name)
 
 
 @dataclass
@@ -52,6 +57,7 @@ class BlockDevice():
     def get_partition_dev_name(self, number: int):
         '''
         Get partition dev name; ex: /dev/sda1
+        Important: Does not rely on lsblk data (usually used prior to formatting)
 
         params:
             number: 1, 2, 3, ..
@@ -60,6 +66,27 @@ class BlockDevice():
         if self.name.startswith('nvme'):
             partition = '{}p{}'.format(self.dev_name, number)
         return partition
+
+    def get_partition_uuid(self, number: int):
+        '''
+        Relies on cryptsetup to get the desired UUID
+        This should only be run after crypt-setup (for ex. to get the UUID for the system config)
+        '''
+        target_path = self.get_partition_dev_name(number)
+        # command = 'cryptsetup luksUUID {}'.format(target_path)
+        command = 'blkid -s UUID -o value {}'.format(target_path)
+        result = _run_command_process(command)
+
+        uuid = None
+
+        if result['error'] is None:
+            if result['result'] is not None:
+                uuid = result['result'].replace('\n', '')
+                
+        if uuid is None:
+            print('Could not determine partition {} UUID.'.format(target_path))
+            
+        return uuid
 
     def is_valid_partition(self, dev_name: str):
         '''
@@ -98,7 +125,7 @@ def get_block_devices(stout=None):
     '''
     result = None
     if stout is None:
-        process = subprocess.run(['lsblk', '--json'], capture_output=True, text=True)
+        process = subprocess.run(['lsblk', '--json', '--output-all'], capture_output=True, text=True)
         result = json.loads(process.stdout)
     else:
         result = json.loads(stout)
@@ -116,7 +143,9 @@ def get_block_devices(stout=None):
                     partitions.append(BlockDevicePartition(
                         type=partition['type'],
                         name=partition['name'],
+                        uuid=partition['uuid'],
                         size=convert_size_string(partition['size']),
+                        path=partition['path']
                     ))
             valid_devices.append(
                 BlockDevice(

@@ -1,4 +1,4 @@
-;; PantherX OS Desktop Configuration v2
+;; PantherX OS Desktop Configuration v2.1
 ;; boot in "legacy" BIOS mode
 ;; /etc/system.scm
 
@@ -19,12 +19,23 @@
   (bootloader (bootloader-configuration
                (bootloader grub-bootloader)
                (target "<DISK>")))
-       
-  (file-systems (cons (file-system
-                       (device (file-system-label "my-root"))
-                       (mount-point "/")
-                       (type "ext4"))
-                      %base-file-systems))
+
+  <MAPPED_DEVICES_1>
+  <MAPPED_DEVICES_2>
+  <MAPPED_DEVICES_3>
+  <MAPPED_DEVICES_4>
+  <MAPPED_DEVICES_5>
+  <MAPPED_DEVICES_6>
+  
+  (file-systems (append
+		 (list
+		  <ROOT_FILE_SYSTEM_1>
+		  <ROOT_FILE_SYSTEM_2>
+		  <ROOT_FILE_SYSTEM_3>
+		  <ROOT_FILE_SYSTEM_4>
+		  <ROOT_FILE_SYSTEM_5>
+		 )
+		 %base-file-systems))
 
   (swap-devices '("/swapfile"))
 

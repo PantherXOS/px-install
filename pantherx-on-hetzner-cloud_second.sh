@@ -4,7 +4,7 @@
 # Script 2/2
 
 # THIS IS OPTIONAL
-# If you just want to deploy to the target machine, you don't need to run this script.
+# If you just want to deploy (guix deploy) to the target machine, you don't need to run this script.
 
 ###### MODIFY
 

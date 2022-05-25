@@ -1,5 +1,5 @@
 ;; PantherX OS Desktop Configuration v2.1
-;; boot in "legacy" BIOS mode
+;; boot in EFI mode
 ;; /etc/system.scm
 
 (use-modules (gnu)
@@ -12,18 +12,18 @@
 (define %ssh-public-key
   "${PUBLIC_KEY}")
 
-(px-desktop-os
+(px-server-os
  (operating-system
   (host-name "<HOSTNAME>")
   (timezone "<TIMEZONE>")
   (locale "<LOCALE>")
   
-  ;; Boot in "legacy" BIOS mode, assuming <DISK> is the
+  ;; Boot in EFI mode, assuming <DISK> is the
   ;; target hard disk, and "my-root" is the label of the target
   ;; root file system.
   (bootloader (bootloader-configuration
-               (bootloader grub-bootloader)
-               (target "<DISK>")))
+               (bootloader grub-efi-bootloader)
+               (target "/boot/efi")))
 
   <MAPPED_DEVICES_1>
   <MAPPED_DEVICES_2>
@@ -39,7 +39,10 @@
 		  <ROOT_FILE_SYSTEM_3>
 		  <ROOT_FILE_SYSTEM_4>
 		  <ROOT_FILE_SYSTEM_5>
-		 )
+		  (file-system
+		   (device "<PARTITION_ONE>")
+		   (mount-point "/boot/efi")
+		   (type "vfat")))
 		 %base-file-systems))
 
   (swap-devices '("/swapfile"))
@@ -63,11 +66,11 @@
   
   ;; Globally-installed packages.
   (packages (cons*
-	     %px-desktop-packages))
+	     %px-server-packages))
   
   ;; Services
   (services (cons*
-	     %px-desktop-services)))
+	     %px-server-services)))
  
  #:open-ports '(("tcp" "ssh"))
- #:authorized-keys <ACCENT>(("root" ,(plain-file "panther.pub" %ssh-public-key)))
+ #:authorized-keys <ACCENT>(("root" ,(plain-file "panther.pub" %ssh-public-key))))

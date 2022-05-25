@@ -11,6 +11,7 @@ Command line options:
 -u, --username: First user username (Default: panther)
 -pw, --password: First user password (Default: pantherx) - should be changed later `passwd <USERNAME>`
 -d, --disk: The disk to install to (Default: /dev/sda)
+-de, --disk_encryption: Whether to use full disk encryption (Default: False)
 -c, --config: Overwrites all other options; installs from enterprise config settings
 ```
 
@@ -48,6 +49,14 @@ px-install --type DESKTOP \
 	--password pantherx \
 	--key ssh-ed25519 AA ... 4QydPg franz \
 	--disk /dev/sda
+	--disk_encryption True
+```
+
+If you decide to use full disk encryption (`-de True / --disk_encryption True), you will be prompted for an encryption passphrase a few seconds after the installation has started:
+
+```
+Enter passphrase for /dev/sda2:
+Verify passphrase:
 ```
 
 Enterprise config overwrite (fully automated):
@@ -86,16 +95,6 @@ px-install network-check
 
 There's a minimal, all-in-one installer bash script in `scripts/install.sh`. It replicates the python application closely. Instead of params it asks for each setting.
 
-## TODO
-
-Support encrypted partitions
-
-```bash
-cryptsetup luksFormat /dev/sda2
-cryptsetup open --type luks /dev/sda2 my-partition
-mkfs.ext4 -L my-root /dev/mapper/my-partition
-```
-
 ## Use as Library
 
 ```
@@ -116,9 +115,8 @@ class SystemConfiguration():
     password: str
     public_key: str
     disk: BlockDevice
+	use_disk_encryption: bool
 ```
-
-_TODO: Document Enterprise Config library usage._
 
 ## Misc
 
@@ -164,4 +162,12 @@ guix environment --pure \
 python3 -m venv venv
 source venv/bin/activate
 pip install .
+```
+
+Quick test:
+
+```bash
+rsync -r --exclude={'venv','git','__pycache','tests','scripts'} ../px-install root@<IP>:/root
+# rsync -r --exclude "venv" --exclude="git" -e "ssh -p 2222" ../px-install root@127.0.0.1:/root
+cd px-install; python3 -m venv venv; source venv/bin/activate; pip3 install .; px-install run
 ```

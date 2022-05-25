@@ -5,6 +5,7 @@
 # Test on:
 # - Ubuntu 21.04
 # - Debian 11
+# - Debian 9 (see comments ~ line 48)
 #
 # 1. Create a new CCX11 with Debian 11
 # 2. Login with SSH

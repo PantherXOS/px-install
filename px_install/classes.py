@@ -24,6 +24,7 @@ class SystemConfiguration():
     password: str
     public_key: str
     disk: BlockDevice
+    use_disk_encryption: bool
 
     def get_dict(self):
         config_dict = {

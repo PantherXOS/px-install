@@ -1,4 +1,4 @@
-;; PantherX OS Desktop Configuration v2.1
+;; PantherX OS Server Configuration v2.1
 ;; boot in "legacy" BIOS mode
 ;; /etc/system.scm
 
@@ -7,12 +7,7 @@
              (px system install)
              (px system))
 
-(use-service-modules ssh)
-
-(define %ssh-public-key
-  "${PUBLIC_KEY}")
-
-(px-desktop-os
+(px-server-os
  (operating-system
   (host-name "<HOSTNAME>")
   (timezone "<TIMEZONE>")
@@ -43,7 +38,7 @@
 		 %base-file-systems))
 
   (swap-devices '("/swapfile"))
-  
+
   (users (cons (user-account
                 (name "<USERNAME>")
                 (comment "<USER_COMMENT>")
@@ -63,11 +58,8 @@
   
   ;; Globally-installed packages.
   (packages (cons*
-	     %px-desktop-packages))
+	     %px-server-packages))
   
   ;; Services
   (services (cons*
-	     %px-desktop-services)))
- 
- #:open-ports '(("tcp" "ssh"))
- #:authorized-keys <ACCENT>(("root" ,(plain-file "panther.pub" %ssh-public-key)))
+	     %px-server-services))))

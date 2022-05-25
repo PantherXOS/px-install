@@ -9,10 +9,25 @@ from .system_config import write_system_config
 from .util import pre_install_environment_check, run_commands
 
 
-def get_CMD_FORMAT_BIOS(disk: BlockDevice):
+def get_format_system_partition_CMD(part2: str, use_disk_encryption: bool):
+    if use_disk_encryption:
+        return [
+            ['cryptsetup', 'luksFormat', part2],
+            ['cryptsetup', 'open', '--type', 'luks', part2, 'cryptroot'],
+            ['mkfs.ext4', '-q', '-L', 'my-root', '/dev/mapper/cryptroot']
+        ]
+    else:
+        return [
+            ['mkfs.ext4', '-q', '-L', 'my-root', part2]
+        ]
+
+
+
+def get_CMD_FORMAT_BIOS(disk: BlockDevice, use_disk_encryption: bool):
     '''Expect /dev/sda or similiar'''
     part2 = disk.get_partition_dev_name(2)
 
+    cmd_format_partition = get_format_system_partition_CMD(part2, use_disk_encryption)
     cmd_format_bios = [
         [
             'parted', '-s', disk.dev_name, '--',
@@ -20,20 +35,18 @@ def get_CMD_FORMAT_BIOS(disk: BlockDevice):
             'mkpart', 'primary', 'fat32', '0%', '10M',
             'mkpart', 'primary', '10M', '99%'
         ],
-        # ['sgdisk', '-t', '1:ef02', disk.dev_name],
-        # ['sgdisk', '-t', '2:8300', disk.dev_name],
-        # ['parted', disk.dev_name, 'set', '1', 'boot', 'on'],
         ['parted', disk.dev_name, 'set', '1', 'bios_grub', 'on'],
-        ['mkfs.ext4', '-q', '-L', 'my-root', part2]
+        *cmd_format_partition
     ]
     return cmd_format_bios
 
 
-def get_CMD_FORMAT_EFI(disk: BlockDevice):
+def get_CMD_FORMAT_EFI(disk: BlockDevice, use_disk_encryption: bool):
     '''Expect /dev/sda or similiar'''
     part1 = disk.get_partition_dev_name(1)
     part2 = disk.get_partition_dev_name(2)
 
+    cmd_format_partition = get_format_system_partition_CMD(part2, use_disk_encryption)
     cmd_format_efi = [
         [
             'parted', '-s', disk.dev_name, '--',
@@ -45,7 +58,7 @@ def get_CMD_FORMAT_EFI(disk: BlockDevice):
         ['sgdisk', '-t', '2:8300', disk.dev_name],
         ['parted', disk.dev_name, 'set', '1', 'esp', 'on'],
         ['mkfs.fat', '-I', '-F32', part1],
-        ['mkfs.ext4', '-q', '-L', 'my-root', part2],
+        *cmd_format_partition,
         ['mkdir', '/boot/efi'],
         ['mount', part1, '/boot/efi']
     ]
@@ -80,10 +93,16 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
     firmware = config.firmware
 
     print('=> (1) Formatting hard disk {} ...'.format(config.disk.dev_name))
+
+    capture_output = True
+    if config.use_disk_encryption:
+        # This is necessary for the password prompt to show, during disk encryption.
+        capture_output = False
+
     if firmware == 'bios':
-        run_commands(get_CMD_FORMAT_BIOS(config.disk))
+        run_commands(get_CMD_FORMAT_BIOS(config.disk, config.use_disk_encryption), capture_output=capture_output)
     if firmware == 'efi':
-        run_commands(get_CMD_FORMAT_EFI(config.disk))
+        run_commands(get_CMD_FORMAT_EFI(config.disk, config.use_disk_encryption), capture_output=capture_output)
 
     # Testing ...
     time.sleep(2)
@@ -117,8 +136,11 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
 
     print('=> (5) Starting installation ...')
     print('Depending on your internet connection speed and system performance, this operation will take 10 to 90 minutes.')
-    run_commands(CMD_INSTALL_PULL, allow_retry=True)
-    run_commands(CMD_INSTALL, allow_retry=True)
+	# TODO: Remove 'capture_output=False'
+    run_commands(CMD_INSTALL_PULL, allow_retry=True, capture_output=False)
+    print('Finished downloading the latest changes.')
+	# TODO: Remove 'capture_output=False'
+    run_commands(CMD_INSTALL, allow_retry=True, capture_output=False)
 
     print()
     print("PantherX OS has been installed successfully.")

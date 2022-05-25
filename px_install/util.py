@@ -89,25 +89,19 @@ def decode_return_value(value: bytes):
 	return None
 
 
-def _run_command_process(command_string: str):
+def _run_command_process(command_string: str, capture_output: bool = True):
     result = None
     error = None
 
-    res = subprocess.run(command_string, shell=True, capture_output=True)
+    res = subprocess.run(command_string, shell=True, capture_output=capture_output)
     returncode = res.returncode
 
     if res.stderr and returncode > 0:
-        try:
-            error = res.stderr.decode()
-        except:
-            error = res.stderr
+        error = res.stderr.decode()
     elif res.returncode > 0:
         error = 'Command exited with error code: {}.'.format(res.returncode)
     elif res.stdout:
-        try:
-            result = res.stdout.decode()
-        except:
-            result = res.stdout
+        result = res.stdout.decode()
     
     return {
         'result': result,
@@ -115,7 +109,7 @@ def _run_command_process(command_string: str):
     }
 
 
-def run_commands(commands: list, allow_retry: bool = False, show_progress: bool = False):
+def run_commands(commands: list, allow_retry: bool = False, capture_output: bool = True, show_progress: bool = False):
     '''
     Execute an array of commands
     
@@ -129,7 +123,7 @@ def run_commands(commands: list, allow_retry: bool = False, show_progress: bool 
         command_string = list_of_commands_to_string(command)
         
         while not is_done:
-            result = _run_command_process(command_string)
+            result = _run_command_process(command_string, capture_output=capture_output)
             if result['error']:
                 if allow_retry:
                     print('''

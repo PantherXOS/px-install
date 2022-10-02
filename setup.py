@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 HERE = pathlib.Path(__file__).parent
 
-VERSION = '0.0.35'
+VERSION = '0.0.36'
 PACKAGE_NAME = 'px-install'
 AUTHOR = 'Franz Geffke'
 AUTHOR_EMAIL = 'franz@pantherx.org'
@@ -39,9 +39,13 @@ setup(
     package_data={
         "": [
             'templates/base-desktop-bios-ssh.scm',
-            'templates/base-desktop-efi-ssh.scm',
             'templates/base-desktop-bios.scm',
+            'templates/base-desktop-efi-ssh.scm',
             'templates/base-desktop-efi.scm',
+            'templates/base-server-bios-ssh.scm',
+            'templates/base-server-bios.scm',
+            'templates/base-server-efi-ssh.scm',
+            'templates/base-server-efi.scm',
             'templates/channels.scm'
         ]
     },

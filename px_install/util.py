@@ -12,7 +12,6 @@ import cpuinfo
 import qrcode
 import urllib3
 from pytz import all_timezones
-from tqdm import tqdm
 
 
 def check_efi_or_bios():
@@ -74,7 +73,6 @@ def list_of_commands_to_string(command: list):
             final += "{} ".format(item)
         count += 1
     return final
-
 
 
 def decode_return_value(value: bytes):

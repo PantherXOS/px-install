@@ -3,16 +3,22 @@
 import argparse
 import logging
 import sys
+import time
 
 from .block_devices import (get_block_device_by_name, get_block_devices,
-                            get_largest_valid_block_device, print_block_devices)
+                            get_largest_valid_block_device,
+                            print_block_devices)
 from .classes import SystemConfiguration
 from .remote_config import get_enterprise_config
-from .system_config import exit_if_system_config_exists, matching_template_is_available
-from .util import (check_efi_or_bios, is_online, is_valid_hostname, is_valid_timezone, online_check, print_debug_qr_code,
+from .system_config import (exit_if_system_config_exists,
+                            matching_template_is_available)
+from .util import (check_efi_or_bios, is_online, is_valid_hostname,
+                   is_valid_timezone, online_check, print_debug_qr_code,
                    random_hostname)
-from .wifi import (has_valid_wifi_interface, install_wpa_supplicant, list_network_interfaces,
-                   print_wifi_help, prompt_for_wifi_config, write_wifi_config)
+from .wifi import (dhclient_get_ip, has_valid_wifi_interface,
+                   list_network_interfaces, prompt_for_wifi_config,
+                   rfkill_unblock_wifi, wpa_supplicant_activate,
+                   write_wifi_config)
 
 log = logging.getLogger(__name__)
 
@@ -69,10 +75,17 @@ def get_cl_arguments():
         if not valid_interface:
             sys.exit(1)
         wifi_config = prompt_for_wifi_config()
+        # Write config
         write_wifi_config(wifi_config)
-        # TODO: Fails with "unknown package"; should already be installed
-		# install_wpa_supplicant()
-        print_wifi_help()
+        # Rfkill to be safe
+        rfkill_unblock_wifi()
+        time.sleep(5)
+        # Read and activate config
+        wpa_supplicant_activate()
+        time.sleep(5)
+        # Try to get IP
+        dhclient_get_ip()
+        # print_wifi_help()
         sys.exit(0)
     elif len(sys.argv) == 2 and sys.argv[1] == 'network-check':
         interfaces = list_network_interfaces()

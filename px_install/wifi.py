@@ -148,9 +148,30 @@ def write_wifi_config(config, file_path='/root/wpa_supplicant.conf'):
 		writer.write(content)
 
 
-def install_wpa_supplicant():
-	commands = [['guix', 'package', '-i', 'wpa_supplicant']]
+# def install_wpa_supplicant():
+# 	commands = [['guix', 'package', '-i', 'wpa_supplicant']]
+# 	run_commands(commands)
+
+
+def rfkill_unblock_wifi():
+	commands = [['rfkill', 'unblock', 'wifi']]
 	run_commands(commands)
+	
+
+def wpa_supplicant_activate():
+	wifi_networks = list_network_interfaces('wifi')
+	if len(wifi_networks) > 0:
+		network = wifi_networks[0]
+		commands = [['wpa_supplicant', '-c', '/root/wpa_supplicant.conf', '-i', network.name, '-B']]
+		run_commands(commands)
+
+
+def dhclient_get_ip():
+	wifi_networks = list_network_interfaces('wifi')
+	if len(wifi_networks) > 0:
+		network = wifi_networks[0]
+		commands = [['dhclient', '-v', network.name]]
+		run_commands(commands)
 
 
 def has_valid_wifi_interface():
@@ -178,34 +199,34 @@ def has_valid_wifi_interface():
 		return False
 
 
-def print_wifi_help():
-	wifi_networks = list_network_interfaces('wifi')
+# def print_wifi_help():
+# 	wifi_networks = list_network_interfaces('wifi')
 
-	if len(wifi_networks) > 0:
-		network = wifi_networks[0]
-		print()
-		print('######## NEXT STEPS ########')
-		print()
-		print('Setup your wireless network like so:')
-		print('wpa_supplicant -c /root/wpa_supplicant.conf -i {} -B'.format(network.name))
-		print()
-		print("If you get an error like 'WLAN soft blocked', try running 'rfkill unblock wifi'")
-		print()
-		print('Then, get an IP address:')
-		print('dhclient -v {}'.format(network.name))
+# 	if len(wifi_networks) > 0:
+# 		network = wifi_networks[0]
+# 		print()
+# 		print('######## NEXT STEPS ########')
+# 		print()
+# 		print('Setup your wireless network like so:')
+# 		print('wpa_supplicant -c /root/wpa_supplicant.conf -i {} -B'.format(network.name))
+# 		print()
+# 		print("If you get an error like 'WLAN soft blocked', try running 'rfkill unblock wifi'")
+# 		print()
+# 		print('Then, get an IP address:')
+# 		print('dhclient -v {}'.format(network.name))
 
-	else:
-		print()
-		print('######## NEXT STEPS ########')
-		print()
-		print('Could not detect a Wi-Fi interface on your computer.')
-		print('(1) On some devices you need to unblock the inteface with: rfkill unblock wifi')
-		print('(2) Your Wi-Fi interface is not supported out of the box')
-		print('=> If anyhow possible, install with a LAN cable.')
-		print()
-		print('Consult https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
-		print('To get help, visit https://community.pantherx.org/')
-		print()
-		print_debug_qr_code('https://community.pantherx.org/t/pantherx-installation-get-wi-fi-to-work-connect-to-the-internet/72')
-		print('Scan to open: https://community.pantherx.org/t/pantherx-installation-get-wi-fi-to-work-connect-to-the-internet/72')
+# 	else:
+# 		print()
+# 		print('######## NEXT STEPS ########')
+# 		print()
+# 		print('Could not detect a Wi-Fi interface on your computer.')
+# 		print('(1) On some devices you need to unblock the inteface with: rfkill unblock wifi')
+# 		print('(2) Your Wi-Fi interface is not supported out of the box')
+# 		print('=> If anyhow possible, install with a LAN cable.')
+# 		print()
+# 		print('Consult https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
+# 		print('To get help, visit https://community.pantherx.org/')
+# 		print()
+# 		print_debug_qr_code('https://community.pantherx.org/t/pantherx-installation-get-wi-fi-to-work-connect-to-the-internet/72')
+# 		print('Scan to open: https://community.pantherx.org/t/pantherx-installation-get-wi-fi-to-work-connect-to-the-internet/72')
 		

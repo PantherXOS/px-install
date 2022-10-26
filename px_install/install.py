@@ -1,6 +1,7 @@
 '''Installation'''
 
 import time
+from typing import List
 from .classes import BlockDevice, SystemConfiguration
 from .remote_config import (copy_enterprise_channels, copy_enterprise_json_config,
                             copy_enterprise_system_config)
@@ -147,3 +148,59 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
     print("")
     print("You should change your user and root password after reboot.")
     print("Reboot with 'reboot'")
+
+
+class SystemInstallation():
+	config: SystemConfiguration
+	is_enterprise_config: bool
+	
+	step: int = 0
+	errors: List
+
+	def __init__(self, config: SystemConfiguration, is_enterprise_config = False):
+		self.config = config
+		self.is_enterprise_config = is_enterprise_config
+
+	def format(self):
+		'''First step: formatting'''
+		if self.config.firmware == 'bios':
+			run_commands(get_CMD_FORMAT_BIOS(self.config.disk, self.config.use_disk_encryption))
+		if self.config.firmware == 'efi':
+			run_commands(get_CMD_FORMAT_EFI(self.config.disk, self.config.use_disk_encryption))
+		self.step = 1
+
+	def mount_partitions(self):
+		'''Second step: mount partitions'''
+		run_commands(CMD_PREP_INSTALL)
+		self.step = 2
+
+	def create_swap(self):
+		'''Third step: create a swap file'''
+		run_commands(CMD_CREATE_SWAP)
+		self.step = 3
+
+	def generate_config(self):
+		'''Forth step: generate system config'''
+
+		if self.is_enterprise_config:
+			print('=> (4) Writing enterprise system configuration ...')
+			copy_enterprise_system_config()
+			copy_enterprise_json_config()
+			copy_enterprise_channels()
+		else:
+			print('=> (4) Writing system configuration ...')
+			write_system_config(self.config)
+			write_system_channels()
+		self.step = 4
+
+	def pull(self):
+		'''Fifth step: pull channel data'''
+		# TODO: Remove 'capture_output=False'
+		run_commands(CMD_INSTALL_PULL, allow_retry=False, capture_output=False)
+		self.step = 5
+
+	def install(self):
+		'''Sixth step: install system'''
+		# TODO: Remove 'capture_output=False'
+		run_commands(CMD_INSTALL, allow_retry=False, capture_output=False)
+		self.step = 6

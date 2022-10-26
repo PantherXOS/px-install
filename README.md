@@ -118,6 +118,21 @@ class SystemConfiguration():
 	use_disk_encryption: bool
 ```
 
+You can also run the installation in steps:
+
+```python
+from px_install import SystemInstallation
+install = SystemInstallation(config, is_enterprise_config)
+
+# then you can call each manually:
+install.format()
+install.mount_partition()
+install.create_swap()
+install.generate_config()
+install.pull()
+install.install()
+```
+
 ## Misc
 
 Also included in the repository:

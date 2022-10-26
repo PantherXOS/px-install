@@ -104,7 +104,7 @@ intallation(config)
 
 The system configuration looks like this:
 
-```
+```python
 class SystemConfiguration():
     type: str
     firmware: str
@@ -121,8 +121,18 @@ class SystemConfiguration():
 You can also run the installation in steps:
 
 ```python
-from px_install import SystemInstallation
-install = SystemInstallation(config, is_enterprise_config)
+from px_install import SystemInstallation, default_system_configuration
+
+config = default_system_configuration()
+
+# if needed, config can be updated like this
+# some or all items will be validated in the future
+# if for ex. the hostname is not valid, a ValueError is thrown
+config.update_hostname('domain')
+config.update_timezone('Europe/Berlin')
+# update_ + type, hostname, timezone, locale, username, password, public_key,  use_disk_encryption
+
+install = SystemInstallation(config, is_enterprise_config=False)
 
 # then you can call each manually:
 install.format()

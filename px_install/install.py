@@ -2,12 +2,14 @@
 
 import time
 from typing import List
+
+from px_install.block_devices import get_block_devices, get_largest_valid_block_device
 from .classes import BlockDevice, SystemConfiguration
 from .remote_config import (copy_enterprise_channels, copy_enterprise_json_config,
                             copy_enterprise_system_config)
 from .system_channels import write_system_channels
 from .system_config import write_system_config
-from .util import pre_install_environment_check, run_commands
+from .util import check_efi_or_bios, pre_install_environment_check, random_hostname, run_commands
 
 
 def get_format_system_partition_CMD(part2: str, use_disk_encryption: bool):
@@ -137,10 +139,10 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
 
     print('=> (5) Starting installation ...')
     print('Depending on your internet connection speed and system performance, this operation will take 10 to 90 minutes.')
-	# TODO: Remove 'capture_output=False'
+    # TODO: Remove 'capture_output=False'
     run_commands(CMD_INSTALL_PULL, allow_retry=True, capture_output=False)
     print('Finished downloading the latest changes.')
-	# TODO: Remove 'capture_output=False'
+    # TODO: Remove 'capture_output=False'
     run_commands(CMD_INSTALL, allow_retry=True, capture_output=False)
 
     print()
@@ -150,57 +152,90 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
     print("Reboot with 'reboot'")
 
 
+def default_system_configuration() -> SystemConfiguration:
+    '''
+    SystemConfiguration with defaults set.:
+    - type (default: DESKTOP)
+    - firmware (default: auto: bios/efi)
+    - hostname (default: pantherx-....)
+    - timezone (default: Europe/Berlin)
+    - locale (default: en_US.utf8)
+    - username (default: panther)
+    - password (default: pantherx)
+    - public_key (default: NONE)
+    - use_disk_encryption (default: False)
+
+    Will throw a ValueError when no block device has been found.
+    '''
+
+    block_devices = get_block_devices()
+    largest_block_device = get_largest_valid_block_device(block_devices)
+    if largest_block_device is None:
+        raise ValueError('No valid block device found.')
+    return SystemConfiguration(
+        type="DESKTOP",
+        firmware=check_efi_or_bios(),
+        hostname=random_hostname('pantherx', 6),
+        timezone="Europe/Berlin",
+        locale="en_US.utf8",
+        username="panther",
+        password="pantherx",
+        public_key="NONE",
+        disk=largest_block_device,
+        use_disk_encryption=False
+    )
+
 class SystemInstallation():
-	config: SystemConfiguration
-	is_enterprise_config: bool
-	
-	step: int = 0
-	errors: List
+    config: SystemConfiguration
+    is_enterprise_config: bool
+    
+    step: int = 0
+    errors: List
 
-	def __init__(self, config: SystemConfiguration, is_enterprise_config = False):
-		self.config = config
-		self.is_enterprise_config = is_enterprise_config
+    def __init__(self, config: SystemConfiguration, is_enterprise_config = False):
+        self.config = config
+        self.is_enterprise_config = is_enterprise_config
 
-	def format(self):
-		'''First step: formatting'''
-		if self.config.firmware == 'bios':
-			run_commands(get_CMD_FORMAT_BIOS(self.config.disk, self.config.use_disk_encryption))
-		if self.config.firmware == 'efi':
-			run_commands(get_CMD_FORMAT_EFI(self.config.disk, self.config.use_disk_encryption))
-		self.step = 1
+    def format(self):
+        '''First step: formatting'''
+        if self.config.firmware == 'bios':
+            run_commands(get_CMD_FORMAT_BIOS(self.config.disk, self.config.use_disk_encryption))
+        if self.config.firmware == 'efi':
+            run_commands(get_CMD_FORMAT_EFI(self.config.disk, self.config.use_disk_encryption))
+        self.step = 1
 
-	def mount_partitions(self):
-		'''Second step: mount partitions'''
-		run_commands(CMD_PREP_INSTALL)
-		self.step = 2
+    def mount_partitions(self):
+        '''Second step: mount partitions'''
+        run_commands(CMD_PREP_INSTALL)
+        self.step = 2
 
-	def create_swap(self):
-		'''Third step: create a swap file'''
-		run_commands(CMD_CREATE_SWAP)
-		self.step = 3
+    def create_swap(self):
+        '''Third step: create a swap file'''
+        run_commands(CMD_CREATE_SWAP)
+        self.step = 3
 
-	def generate_config(self):
-		'''Forth step: generate system config'''
+    def generate_config(self):
+        '''Forth step: generate system config'''
 
-		if self.is_enterprise_config:
-			print('=> (4) Writing enterprise system configuration ...')
-			copy_enterprise_system_config()
-			copy_enterprise_json_config()
-			copy_enterprise_channels()
-		else:
-			print('=> (4) Writing system configuration ...')
-			write_system_config(self.config)
-			write_system_channels()
-		self.step = 4
+        if self.is_enterprise_config:
+            print('=> (4) Writing enterprise system configuration ...')
+            copy_enterprise_system_config()
+            copy_enterprise_json_config()
+            copy_enterprise_channels()
+        else:
+            print('=> (4) Writing system configuration ...')
+            write_system_config(self.config)
+            write_system_channels()
+        self.step = 4
 
-	def pull(self):
-		'''Fifth step: pull channel data'''
-		# TODO: Remove 'capture_output=False'
-		run_commands(CMD_INSTALL_PULL, allow_retry=False, capture_output=False)
-		self.step = 5
+    def pull(self):
+        '''Fifth step: pull channel data'''
+        # TODO: Remove 'capture_output=False'
+        run_commands(CMD_INSTALL_PULL, allow_retry=False, capture_output=False)
+        self.step = 5
 
-	def install(self):
-		'''Sixth step: install system'''
-		# TODO: Remove 'capture_output=False'
-		run_commands(CMD_INSTALL, allow_retry=False, capture_output=False)
-		self.step = 6
+    def install(self):
+        '''Sixth step: install system'''
+        # TODO: Remove 'capture_output=False'
+        run_commands(CMD_INSTALL, allow_retry=False, capture_output=False)
+        self.step = 6

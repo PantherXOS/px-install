@@ -33,6 +33,7 @@ def get_cl_arguments():
 
     disk_input = ''
 
+	# TODO: Replace with: default_system_configuration()
     type = ''
     firmware = check_efi_or_bios()
     hostname = ''

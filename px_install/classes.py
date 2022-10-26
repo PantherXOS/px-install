@@ -2,6 +2,8 @@ import dataclasses
 import json
 from dataclasses import dataclass
 
+from px_install.util import is_valid_hostname, is_valid_timezone
+
 from .block_devices import BlockDevice
 
 
@@ -40,6 +42,34 @@ class SystemConfiguration():
 
     def get_json(self):
         return json.dumps(self.get_dict())
+
+    def update_type(self, type: str):
+        self.type = type
+
+    def update_hostname(self, hostname: str):
+        if not is_valid_hostname(hostname):
+            raise ValueError('Invalid hostname')
+        self.hostname = hostname
+    
+    def update_timezone(self, timezone: str):
+        if not is_valid_timezone(timezone):
+            raise ValueError('Invalid timezone')
+        self.timezone = timezone
+
+    def update_locale(self, locale: str):
+        self.locale = locale
+
+    def update_username(self, username: str):
+        self.username = username
+
+    def update_password(self, password: str):
+        self.password = password
+
+    def update_public_key(self, public_key: str):
+        self.public_key = public_key
+
+    def update_use_disk_encryption(self, encryption: bool):
+        self.use_disk_encryption = encryption
 
 
 @dataclass

@@ -145,7 +145,7 @@ cat >> $CHANNELS <<EOL
       (channel
         (name 'pantherx)
         (url "https://channels.pantherx.org/git/pantherx-extra.git")
-        (branch "master")))
+        (branch "rolling")))
 EOL
 }
 

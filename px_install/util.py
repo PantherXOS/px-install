@@ -249,7 +249,7 @@ def is_online():
     '''
     try:
         http = urllib3.PoolManager()
-        http.request('GET', 'http://channels.pantherx.org', timeout=1)
+        http.request('GET', 'https://channels.pantherx.org', timeout=1)
         return True
     except:
         return False

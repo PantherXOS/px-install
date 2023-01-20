@@ -60,18 +60,38 @@ echo "########"
 
 trap '{ rm -rf -- "$PACK_CONFIG_TEMP_DIR"; }' EXIT
 
-echo "S3 Upload: AWS access and secret keys need to be set in advance!"
-read -p "Would you like to upload the config to S3? [yes]: " USER_RESPONSE_UPLOAD_S3 
-USER_RESPONSE_UPLOAD_S3=${USER_RESPONSE_UPLOAD_S3:-'yes'}
-echo $AUTH_SERVER_URL
+## UPLOAD
 
-if [ $USER_RESPONSE_UPLOAD_S3 = 'yes' ]; then
-	echo "=> Uploading to S3"
+echo "=> Uploading new archive to S3"
+INI_FILE=~/.aws/credentials
+
+while IFS=' = ' read key value
+do
+    if [[ $key == \[*] ]]; then
+        section=$key
+    elif [[ $value ]] && [[ $section == '[temp-pantherx]' ]]; then
+        if [[ $key == 'aws_access_key_id' ]]; then
+            AWS_ACCESS_KEY_ID=$value
+        elif [[ $key == 'aws_secret_access_key' ]]; then
+            AWS_SECRET_ACCESS_KEY=$value
+        fi
+    fi
+done < $INI_FILE
+
+echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
+echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
+
+##
+
+if [[ -z "$AWS_ACCESS_KEY_ID" ]]; then
+    echo "AWS_ACCESS_KEY_ID is empty"
+    echo "Please check your ~/.aws/credentials file"
+fi
+
 s3cmd put \
---access_key=$AWS_ACCESS_KEY \
---secret_key=$AWS_SECRET_KEY \
+--access_key=$AWS_ACCESS_KEY_ID \
+--secret_key=$AWS_SECRET_ACCESS_KEY \
 --region=eu-central-1 \
 --acl-public \
 $PACK_SETUP_FILE_NAME \
 $AWS_BUCKET_URL
-fi

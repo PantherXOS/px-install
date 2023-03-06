@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# PantherX on Hetzner
+# PantherX on AWS EC2
 
 # Test on:
 # - Ubuntu 21.04
@@ -99,11 +99,11 @@ cat >> $CONFIG <<EOL
 
   (bootloader (bootloader-configuration
                (bootloader grub-bootloader)
-               (target "/dev/sda")))
+               (target "/dev/xvda")))
        
   (file-systems (append
         (list (file-system
-                (device "/dev/sda1")
+                (device "/dev/xvda1")
                 (mount-point "/")
                 (type "ext4")))
               %base-file-systems))
@@ -171,5 +171,8 @@ guix system reconfigure /etc/bootstrap-config.scm
 
 echo "We are done here."
 echo $HOSTNAME
+echo
+echo "In case you missed it, here's the password again:"
+echo $USER_PASSWORD
 
 # reboot

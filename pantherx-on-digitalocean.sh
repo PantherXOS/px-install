@@ -142,15 +142,15 @@ cat >> $CHANNELS <<EOL
 (list (channel
         (name 'guix)
         (url "https://channels.pantherx.org/git/pantherx.git")
-        (branch "rolling"))
+        (branch "production"))
       (channel
         (name 'nongnu)
         (url "https://channels.pantherx.org/git/nongnu.git")
-        (branch "rolling"))
+        (branch "production"))
       (channel
         (name 'pantherx)
         (url "https://channels.pantherx.org/git/pantherx-extra.git")
-        (branch "rolling")))
+        (branch "production")))
 EOL
 }
 
@@ -181,4 +181,4 @@ echo $PUBLIC_IPV4
 echo $NETMASK
 echo $GATEWAY
 
-reboot
+# reboot

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# PantherX on AWS EC2 - t2.* instance-type
+# PantherX on AWS EC2 - t3.* instance-type
 
 # Test on:
 # - Ubuntu 21.04
 # - Debian 11
 # - Debian 9 (see comments ~ line 48)
 #
-# 1. Create a new EC2 (t2.*) VM with Debian 11
+# 1. Create a new EC2 (t3.*) VM with Debian 11
 # 2. Login with SSH and switch to root
 # 3. Paste this script into a setup.sh and run it*
 # 4. Wait ~10 minutes on a 25 Euro Cloud Server
@@ -98,11 +98,11 @@ cat >> $CONFIG <<EOL
 
   (bootloader (bootloader-configuration
                (bootloader grub-bootloader)
-               (target "/dev/xvda")))
+               (target "/dev/nvme0n1")))
        
   (file-systems (append
         (list (file-system
-                (device "/dev/xvda1")
+                (device "/dev/nvme0n1p1")
                 (mount-point "/")
                 (type "ext4")))
               %base-file-systems))

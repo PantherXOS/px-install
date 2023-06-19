@@ -92,7 +92,7 @@ CMD_INSTALL_PULL_HASH = [
 ]
 
 CMD_INSTALL = [
-    ['guix', 'system', 'init', '/mnt/etc/system.scm', '/mnt']
+    ['guix', 'system', 'init', '/mnt/etc/system.scm', '/mnt', "--substitute-urls='https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://packages.pantherx.org'"]
 ]
 
 

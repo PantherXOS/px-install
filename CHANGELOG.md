@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.42]
+
+### Fixed
+
+- Use substitute server url for reconfigure step
+
 ## [0.0.41]
+
+### Changed
 
 - Adapt config to new module: `px system install` -> `px system config`
 - WIP: Automatic installer retry in case of subsitute failure

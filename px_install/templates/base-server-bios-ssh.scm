@@ -4,8 +4,7 @@
 
 (use-modules (gnu)
              (gnu system)
-             (px system install)
-             (px system))
+             (px system config))
 
 (use-service-modules ssh)
 
@@ -70,4 +69,4 @@
 	     %px-server-services)))
  
  #:open-ports '(("tcp" "ssh"))
- #:authorized-keys <ACCENT>(("root" ,(plain-file "panther.pub" %ssh-public-key)))
+ #:authorized-keys <ACCENT>(("root" ,(plain-file "panther.pub" %ssh-public-key))))

@@ -62,8 +62,7 @@ cat >> $CONFIG <<EOL
 
 (use-modules (gnu)
              (gnu system)
-             (px system)
-             (px system install)
+             (px system config)
              (gnu packages))
 
 (px-desktop-os
@@ -127,8 +126,7 @@ cat >> $CONFIG <<EOL
 
 (use-modules (gnu)
              (gnu system)
-             (px system)
-             (px system install)
+             (px system config)
              (gnu packages))
 
 (define %ssh-public-key
@@ -196,7 +194,7 @@ cat >> $CONFIG <<EOL
 (use-modules (gnu)
              (gnu system)
              (px system)
-             (px system install)
+             (px system config)
 			 (gnu packages))
 
 (px-desktop-os
@@ -255,8 +253,7 @@ cat >> $CONFIG <<EOL
 
 (use-modules (gnu)
              (gnu system)
-             (px system)
-             (px system install)
+             (px system config)
 			 (gnu packages))
 
 (define %ssh-public-key
@@ -317,7 +314,7 @@ cat >> $CHANNELS <<EOL
 (list (channel
         (name 'guix)
         (url "https://channels.pantherx.org/git/pantherx.git")
-        (branch "rolling-nonlibre"))
+        (branch "rolling"))
       (channel
         (name 'nongnu)
         (url "https://channels.pantherx.org/git/nongnu.git")
@@ -325,7 +322,7 @@ cat >> $CHANNELS <<EOL
       (channel
         (name 'pantherx)
         (url "https://channels.pantherx.org/git/pantherx-extra.git")
-        (branch "master")))
+        (branch "rolling")))
 EOL
 }
 

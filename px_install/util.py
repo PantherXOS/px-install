@@ -7,6 +7,12 @@ import re
 import string
 import subprocess
 import sys
+import threading
+import time
+import multiprocessing
+from subprocess import Popen, PIPE
+
+import psutil
 
 import cpuinfo
 import qrcode
@@ -87,55 +93,162 @@ def decode_return_value(value: bytes):
 	return None
 
 
-def _run_command_process(command_string: str, capture_output: bool = True):
-    result = None
-    error = None
+class ResourceMonitorThread(threading.Thread):
+    def __init__(self, process):
+        super(ResourceMonitorThread, self).__init__()
+        self.process = process
+        self.old_value = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
+        self.running = False
 
-    res = subprocess.run(command_string, shell=True, capture_output=capture_output)
-    returncode = res.returncode
+    def run(self):
+        self.running = True
+        while self.running:
+            new_value = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
+            upload_download_speed = round((new_value - self.old_value) / (1024 * 1024), 2)  # convert bytes to megabytes
+            self.old_value = new_value
+            sys.stdout.write(
+                f"\rCPU Usage: {psutil.cpu_percent()}%, Memory Usage: {psutil.virtual_memory().percent}%, Network Speed: {upload_download_speed} MB/s")
+            sys.stdout.flush()
+            time.sleep(1)  # pause for a second before checking again
+        print()  # to ensure next print starts on a new line
 
-    if res.stderr and returncode > 0:
-        error = res.stderr.decode()
-    elif res.returncode > 0:
-        error = 'Command exited with error code: {}.'.format(res.returncode)
-    elif res.stdout:
-        result = res.stdout.decode()
-    
-    return {
-        'result': result,
-        'error': error
-    }
+    def stop(self):
+        self.running = False
 
 
-def run_commands(commands: list, allow_retry: bool = False, capture_output: bool = True, show_progress: bool = False):
+def reader(pipe, queue, silent):
+    while True:
+        line = pipe.readline()
+        if line == '':
+            break
+        if not silent:
+            print(line, end='')
+        queue.put(line)
+
+
+def _run_command_process(command_string: str, silent=False, support_user_input=False, print_stats=False):
+    '''
+        Stats:
+            print_stats = True
+            silent = False
+    '''
+
+    # Where the user needs to interact with the CLI
+    if support_user_input:
+        result = subprocess.run(command_string, shell=True,)
+        if result.returncode != 0:
+            return {'result': None, 'error': result.stderr}
+        else:
+            return {'result': result.stdout, 'error': None}
+    else:
+        process = Popen(command_string, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
+
+        # We use multiprocessing.Manager to create a Queue that can be shared between processes
+        with multiprocessing.Manager() as manager:
+            stdout_queue = manager.Queue()
+            stderr_queue = manager.Queue()
+
+            # Start a separate process to read stdout and stderr.
+            stdout_process = multiprocessing.Process(target=reader, args=[process.stdout, stdout_queue, silent])
+            stderr_process = multiprocessing.Process(target=reader, args=[process.stderr, stderr_queue, silent])
+
+            stdout_process.start()
+            stderr_process.start()
+
+            monitor = None
+            if print_stats and silent:
+                monitor = ResourceMonitorThread(process)
+                monitor.start()
+
+            stdout_process.join()
+            stderr_process.join()
+
+            if monitor is not None:
+                monitor.stop()
+
+            # Now, stdout and stderr are available immediately.
+            stdout_lines = []
+            while not stdout_queue.empty():
+                stdout_lines.append(stdout_queue.get())
+            stderr_lines = []
+            while not stderr_queue.empty():
+                stderr_lines.append(stderr_queue.get())
+
+            process.wait()
+
+            output = "".join(stdout_lines)
+            error = "".join(stderr_lines)
+            error_message = 'Command exited with error code: {}.'.format(process.returncode)
+
+            # Handle error conditions
+            if process.returncode != 0:
+                if error:  # If stderr is not empty, return that
+                    return {'result': None, 'error': error}
+                else:  # Else return 'Command exited with error code: {}.'.format(p.returncode)
+                    return {'result': None, 'error': error_message}
+
+            # Handle normal output
+            if output:  # If stdout, return
+                return {'result': output, 'error': None}
+            else:  # Else None
+                return {'result': None, 'error': None}
+
+
+def run_commands(commands: list, allow_retry: bool = False, silent: bool = True, support_user_input: bool = False, print_stats: bool = False):
     '''
     Execute an array of commands
     
     params:
         commands: a list of commands: [['ls', '-a'], ['ls']]
-        show_progress: whether to show a progress bar, for the list of commands
+        allow_retry: if True, retry on known error patterns
+        silent: if True, don't print output
+        support_user_input: if True, allow user input (will use subprocess.run instead of Popen)
+        print_stats: print CPU and Memory usage
     '''
 
+    RETRY_MESSAGES = ["invalid option -- 'C'", "error: TLS error in procedure", "guix-command substitute' died unexpectedly", "HTTP download failed"]
+
     for command in commands:
-        is_done = False
-        command_string = list_of_commands_to_string(command)
-        
-        while not is_done:
-            result = _run_command_process(command_string, capture_output=capture_output)
+        retries = 0
+        while True:
+            command_string = list_of_commands_to_string(command)
+            result = _run_command_process(command_string, silent=silent, support_user_input=support_user_input, print_stats=print_stats)
+
             if result['error']:
-                if allow_retry:
-                    print('''
+                if allow_retry and any(message in result['error'] for message in RETRY_MESSAGES) and retries < 3:
+                    print(f'''
 Something went wrong ...
 
 #########
 
-{}
+{result['error']}
+
+########
+
+Automatic retrying due to known error pattern.
+                    ''')
+                    retries += 1
+                    if retries == 2:
+                        for i in range(1, 6):
+                            print(f"Retrying in {6-i} minutes...")
+                            time.sleep(60)
+                    elif retries == 3:
+                        for i in range(1, 2):
+                            print(f"Retrying in {2-i} minutes...")
+                            time.sleep(60)
+                elif allow_retry:
+                    print(f'''
+Something went wrong ...
+
+#########
+
+{result['error']}
 
 ########
 
 Would you like to retry the last operation? 
-This usually helps in case of network hikkups.
-                    '''.format(result['error']))
+This usually helps in case of network hiccups.
+                    ''')
                     retry = input("Retry last operation? 'yes' to retry; 'no' to cancel [yes/no]: ")
                     user_input = retry.lower()
                     if user_input != 'yes' and user_input != 'retry':
@@ -143,7 +256,7 @@ This usually helps in case of network hikkups.
                 else:
                     raise Exception(result['error'])
             else:
-                is_done = True
+                break
 
 
 def convert_size_string(value: str):

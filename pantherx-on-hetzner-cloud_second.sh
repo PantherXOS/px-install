@@ -39,9 +39,8 @@ cat >> $CONFIG <<EOL
 
 (use-modules (gnu)
 	     (gnu system)
-	     (px system)
 	     (gnu packages networking)
-	     (px system install)
+	     (px system config)
 	     (srfi srfi-1)
 	     (gnu packages))
 

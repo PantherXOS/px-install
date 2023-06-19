@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 HERE = pathlib.Path(__file__).parent
 
-VERSION = '0.0.40'
+VERSION = '0.0.41'
 PACKAGE_NAME = 'px-install'
 AUTHOR = 'Franz Geffke'
 AUTHOR_EMAIL = 'franz@pantherx.org'
@@ -21,7 +21,8 @@ INSTALL_REQUIRES = [
     'pytz',
     'qrcode',
     'py-cpuinfo',
-    'urllib3'
+    'urllib3',
+    'psutil'
 ]
 
 setup(
@@ -46,7 +47,8 @@ setup(
             'templates/base-server-bios.scm',
             'templates/base-server-efi-ssh.scm',
             'templates/base-server-efi.scm',
-            'templates/channels.scm'
+            'templates/channels.scm',
+            'keys/packages.pantherx.org.pub'
         ]
     },
     entry_points={

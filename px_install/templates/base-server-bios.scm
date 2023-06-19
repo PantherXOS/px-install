@@ -4,8 +4,7 @@
 
 (use-modules (gnu)
              (gnu system)
-             (px system install)
-             (px system))
+             (px system config))
 
 (px-server-os
  (operating-system

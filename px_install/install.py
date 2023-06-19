@@ -4,6 +4,7 @@ import time
 from typing import List
 
 from px_install.block_devices import get_block_devices, get_largest_valid_block_device
+from px_install.system_substitutes import authorize_substitute_server, write_system_substitutes_key
 from .classes import BlockDevice, SystemConfiguration
 from .remote_config import (copy_enterprise_channels, copy_enterprise_json_config,
                             copy_enterprise_system_config)
@@ -84,6 +85,9 @@ CMD_CREATE_SWAP = [
 
 CMD_INSTALL_PULL = [
     ['guix', 'pull', '--channels=/mnt/etc/guix/channels.scm', '--disable-authentication'],
+]
+
+CMD_INSTALL_PULL_HASH = [
     ['hash', 'guix'],
 ]
 
@@ -97,15 +101,15 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
 
     print('=> (1) Formatting hard disk {} ...'.format(config.disk.dev_name))
 
-    capture_output = True
+    support_user_input = False
     if config.use_disk_encryption:
         # This is necessary for the password prompt to show, during disk encryption.
-        capture_output = False
+        support_user_input = True
 
     if firmware == 'bios':
-        run_commands(get_CMD_FORMAT_BIOS(config.disk, config.use_disk_encryption), capture_output=capture_output)
+        run_commands(get_CMD_FORMAT_BIOS(config.disk, config.use_disk_encryption), support_user_input=support_user_input)
     if firmware == 'efi':
-        run_commands(get_CMD_FORMAT_EFI(config.disk, config.use_disk_encryption), capture_output=capture_output)
+        run_commands(get_CMD_FORMAT_EFI(config.disk, config.use_disk_encryption), support_user_input=support_user_input)
 
     # Testing ...
     time.sleep(2)
@@ -123,12 +127,20 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
     time.sleep(2)
 
     if is_enterprise_config:
-        print('=> (4) Writing enterprise system configuration ...')
+        print('=> (4) Authorize substitutes from packages.pantherx.org ...')
+        write_system_substitutes_key()
+        time.sleep(1)
+        authorize_substitute_server()
+        print('=> (5) Writing enterprise system configuration ...')
         copy_enterprise_system_config()
         copy_enterprise_json_config()
         copy_enterprise_channels()
     else:
-        print('=> (4) Writing system configuration ...')
+        print('=> (4) Authorize substitutes from packages.pantherx.org ...')
+        write_system_substitutes_key()
+        time.sleep(1)
+        authorize_substitute_server()
+        print('=> (5) Writing system configuration ...')
         write_system_config(config)
         write_system_channels()
 
@@ -137,15 +149,17 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
 
     pre_install_environment_check(config)
 
-    print('=> (5) Starting installation ...')
+    print('=> (6) Starting installation ...')
     print('Depending on your internet connection speed and system performance, this operation will take 10 to 90 minutes.')
-    # TODO: Remove 'capture_output=False'
-    run_commands(CMD_INSTALL_PULL, allow_retry=True, capture_output=False)
-    print('Finished downloading the latest changes.')
-    # TODO: Remove 'capture_output=False'
-    run_commands(CMD_INSTALL, allow_retry=True, capture_output=False)
+    print('')
+    print('=> (6.1) Downloading the latest changes ...')
+    run_commands(CMD_INSTALL_PULL, allow_retry=True, print_stats=True)
+    run_commands(CMD_INSTALL_PULL_HASH)
+    print('\nFinished downloading the latest changes.\n')
+    print('=> (6.2) Installing ...')
+    run_commands(CMD_INSTALL, allow_retry=True, print_stats=True)
 
-    print()
+    print('')
     print("PantherX OS has been installed successfully.")
     print("")
     print("You should change your user and root password after reboot.")
@@ -231,11 +245,12 @@ class SystemInstallation():
     def pull(self):
         '''Fifth step: pull channel data'''
         # TODO: Remove 'capture_output=False'
-        run_commands(CMD_INSTALL_PULL, allow_retry=False, capture_output=False)
+        run_commands(CMD_INSTALL_PULL, allow_retry=True, print_stats=True)
+        run_commands(CMD_INSTALL_PULL_HASH)
         self.step = 5
 
     def install(self):
         '''Sixth step: install system'''
         # TODO: Remove 'capture_output=False'
-        run_commands(CMD_INSTALL, allow_retry=False, capture_output=False)
+        run_commands(CMD_INSTALL, allow_retry=True, print_stats=True)
         self.step = 6

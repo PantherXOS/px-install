@@ -143,9 +143,9 @@ def get_block_devices(stout=None):
                     partitions.append(BlockDevicePartition(
                         type=partition['type'],
                         name=partition['name'],
-                        uuid=partition['uuid'],
+                        uuid='uuid' in partition and partition['uuid'] or '',
                         size=convert_size_string(partition['size']),
-                        path=partition['path']
+                        path='path' in partition and partition['path'] or ''
                     ))
             valid_devices.append(
                 BlockDevice(

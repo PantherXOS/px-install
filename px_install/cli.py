@@ -11,7 +11,7 @@ from .block_devices import (get_block_device_by_name, get_block_devices,
 from .classes import SystemConfiguration
 from .remote_config import get_enterprise_config
 from .system_config import (exit_if_system_config_exists,
-                            matching_template_is_available)
+                            basic_config_check)
 from .util import (check_efi_or_bios, is_online, is_valid_hostname,
                    is_valid_timezone, online_check, print_debug_qr_code,
                    random_hostname)
@@ -35,6 +35,7 @@ def get_cl_arguments():
 
 	# TODO: Replace with: default_system_configuration()
     type = ''
+    variant = 'DEFAULT' 
     firmware = check_efi_or_bios()
     hostname = ''
     timezone = ''
@@ -125,9 +126,14 @@ Address: {}
         print()
         print("You will be prompted for a couple of important details. To accept the default, press ENTER.")
         print()
-        type = input("Type of setup: 'DESKTOP', 'SERVER', 'ENTERPRISE'. ['DESKTOP']: ") or 'DESKTOP'
+        type = input("Type of setup: 'MINIMAL', 'DESKTOP', 'SERVER', 'ENTERPRISE'. ['DESKTOP']: ") or 'DESKTOP'
         print("-> Selected {}".format(type))
         print()
+        if type == 'DESKTOP':
+            print()
+            variant = input("Type of desktop: 'DEFAULT', 'MATE', 'XFCE', 'GNOME'. ['DEFAULT']: ") or 'DEFAULT'
+            print("-> Selected {}".format(variant))
+            print()
         print("Your system appears to support {}. Overwrite?".format(firmware.upper()))
         firmware = input("Type of setup: 'BIOS', 'EFI'. ['{}']: ".format(firmware.upper())) or firmware
         print("-> Selected {}".format(firmware.upper()))
@@ -188,8 +194,12 @@ Address: {}
 
         parser = argparse.ArgumentParser()
         parser.add_argument("-t", "--type", type=str, default="DESKTOP",
-                            choices=['DESKTOP', 'SERVER', 'ENTERPRISE'],
+                            choices=['MINIMAL', 'DESKTOP', 'SERVER', 'ENTERPRISE'],
                             help="Installation type."
+                            )
+        parser.add_argument("-v", "--variant", type=str, default="DEFAULT",
+                            choices=['DEFAULT', 'MATE', 'XFCE', 'GNOME'],
+                            help="Desktop variant."
                             )
         parser.add_argument("-fw", "--firmware", type=str,
                             choices=['EFI', 'BIOS'],
@@ -230,6 +240,7 @@ Address: {}
         args = parser.parse_args()
 
         type = args.type
+        variant = args.variant
         firmware = check_efi_or_bios()
         if args.firmware:
             firmware = args.firmware.lower()
@@ -278,6 +289,7 @@ Address: {}
     if enterprise_config:
         config = SystemConfiguration(
             type=enterprise_config.type,
+            variant='DEFAULT',
             firmware=firmware.lower(),
             hostname=hostname,
             timezone=enterprise_config.timezone,
@@ -306,6 +318,7 @@ Address: {}
     else:
         config = SystemConfiguration(
             type=type,
+            variant=variant,
             firmware=firmware.lower(),
             hostname=hostname,
             timezone=timezone,
@@ -316,12 +329,14 @@ Address: {}
             disk=disk,
             use_disk_encryption=use_disk_encryption
         )
-        matching_template_is_available(config)
+        basic_config_check(config)
 
         print()
         print('######## SUMMARY ########')
         print()
         print("Type: {}".format(config.type))
+        if config.type == 'DESKTOP':
+            print("Variant: {}".format(variant))
         print("Firmware: {}".format(config.firmware))
         print("Hostname: {}".format(config.hostname))
         print("Locale: {}".format(config.locale))

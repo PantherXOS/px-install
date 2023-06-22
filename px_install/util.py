@@ -93,27 +93,27 @@ def decode_return_value(value: bytes):
 	return None
 
 
-class ResourceMonitorThread(threading.Thread):
-    def __init__(self, process):
-        super(ResourceMonitorThread, self).__init__()
-        self.process = process
-        self.old_value = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
-        self.running = False
+# class ResourceMonitorThread(threading.Thread):
+#     def __init__(self, process):
+#         super(ResourceMonitorThread, self).__init__()
+#         self.process = process
+#         self.old_value = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
+#         self.running = False
 
-    def run(self):
-        self.running = True
-        while self.running:
-            new_value = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
-            upload_download_speed = round((new_value - self.old_value) / (1024 * 1024), 2)  # convert bytes to megabytes
-            self.old_value = new_value
-            sys.stdout.write(
-                f"\rCPU Usage: {psutil.cpu_percent()}%, Memory Usage: {psutil.virtual_memory().percent}%, Network Speed: {upload_download_speed} MB/s")
-            sys.stdout.flush()
-            time.sleep(1)  # pause for a second before checking again
-        print()  # to ensure next print starts on a new line
+#     def run(self):
+#         self.running = True
+#         while self.running:
+#             new_value = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
+#             upload_download_speed = round((new_value - self.old_value) / (1024 * 1024), 2)  # convert bytes to megabytes
+#             self.old_value = new_value
+#             sys.stdout.write(
+#                 f"\rCPU Usage: {psutil.cpu_percent()}%, Memory Usage: {psutil.virtual_memory().percent}%, Network Speed: {upload_download_speed} MB/s")
+#             sys.stdout.flush()
+#             time.sleep(1)  # pause for a second before checking again
+#         print()  # to ensure next print starts on a new line
 
-    def stop(self):
-        self.running = False
+#     def stop(self):
+#         self.running = False
 
 
 def reader(pipe, queue, silent):
@@ -155,16 +155,16 @@ def _run_command_process(command_string: str, silent=False, support_user_input=F
             stdout_process.start()
             stderr_process.start()
 
-            monitor = None
-            if print_stats and silent:
-                monitor = ResourceMonitorThread(process)
-                monitor.start()
+            # monitor = None
+            # if print_stats and silent:
+            #     monitor = ResourceMonitorThread(process)
+            #     monitor.start()
 
             stdout_process.join()
             stderr_process.join()
 
-            if monitor is not None:
-                monitor.stop()
+            # if monitor is not None:
+            #     monitor.stop()
 
             # Now, stdout and stderr are available immediately.
             stdout_lines = []

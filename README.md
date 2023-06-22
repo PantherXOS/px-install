@@ -4,6 +4,7 @@ Command line options:
 
 ```
 -t, --type: Installation type ['DESTOP', 'SERVER', 'ENTERPRISE'] (Default: Desktop)
+-v, --variant: Installation variant ['DEFAULT', 'XFCE', 'MATE', 'GNOME'] (Default: LXQt)
 -f, --firmware: Overwrite automatic detection ['BIOS', 'EFI'] (Default: Automatic)
 -hn, --hostname: Computer name on the network (Default: pantherx-7xkp1)
 -tz, --timezone: Computer time zone (Default: Europe/Berlin)
@@ -41,6 +42,7 @@ Run with command line arguments:
 
 ```bash
 px-install --type DESKTOP \
+    --variant XFCE \
 	--firmware EFI \
 	--hostname panther \
 	--timezone Europe/Berlin \
@@ -107,6 +109,7 @@ The system configuration looks like this:
 ```python
 class SystemConfiguration():
     type: str
+	variant: str
     firmware: str
     hostname: str
     timezone: str
@@ -194,5 +197,5 @@ Quick test:
 ```bash
 rsync -r --exclude={'venv','git','__pycache','tests','scripts'} ../px-install root@<IP>:/root
 # rsync -r --exclude "venv" --exclude="git" -e "ssh -p 2222" ../px-install root@127.0.0.1:/root
-cd px-install; python3 -m venv venv; source venv/bin/activate; pip3 install .; px-install run
+cd px-install; rm -rf venv; python3 -m venv venv; source venv/bin/activate; pip3 install .; px-install run
 ```

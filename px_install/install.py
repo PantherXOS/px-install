@@ -170,6 +170,7 @@ def default_system_configuration() -> SystemConfiguration:
     '''
     SystemConfiguration with defaults set.:
     - type (default: DESKTOP)
+    - variant (default: DEFAULT)
     - firmware (default: auto: bios/efi)
     - hostname (default: pantherx-....)
     - timezone (default: Europe/Berlin)
@@ -188,6 +189,7 @@ def default_system_configuration() -> SystemConfiguration:
         raise ValueError('No valid block device found.')
     return SystemConfiguration(
         type="DESKTOP",
+        variant="DEFAULT",
         firmware=check_efi_or_bios(),
         hostname=random_hostname('pantherx', 6),
         timezone="Europe/Berlin",

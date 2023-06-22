@@ -18,6 +18,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 class SystemConfiguration():
     '''Configuration used for the installation'''
     type: str
+    variant: str
     firmware: str
     hostname: str
     timezone: str
@@ -31,6 +32,7 @@ class SystemConfiguration():
     def get_dict(self):
         config_dict = {
             'type': self.type,
+            'variant': self.variant,
             'firmware': self.firmware,
             'hostname': self.hostname,
             'locale': self.locale,
@@ -45,6 +47,9 @@ class SystemConfiguration():
 
     def update_type(self, type: str):
         self.type = type
+    
+    def update_variant(self, variant: str):
+        self.variant = variant
 
     def update_hostname(self, hostname: str):
         if not is_valid_hostname(hostname):

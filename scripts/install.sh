@@ -113,7 +113,8 @@ cat >> $CONFIG <<EOL
 
   ;; Globally-activated services.
   (services (cons*
-   %px-desktop-services))))
+              (service px-desktop-service-type)
+            %px-desktop-services))))
 EOL
 }
 
@@ -193,9 +194,8 @@ cat >> $CONFIG <<EOL
 
 (use-modules (gnu)
              (gnu system)
-             (px system)
              (px system config)
-			 (gnu packages))
+			       (gnu packages))
 
 (px-desktop-os
  (operating-system
@@ -240,7 +240,8 @@ cat >> $CONFIG <<EOL
 
   ;; Globally-activated services.
   (services (cons*
-   %px-desktop-services))))
+              (service px-desktop-service-type)
+            %px-desktop-services))))
 EOL
 }
 

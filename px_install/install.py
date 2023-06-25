@@ -84,7 +84,7 @@ CMD_CREATE_SWAP = [
 ]
 
 CMD_INSTALL_PULL = [
-    ['guix', 'pull', '--channels=/mnt/etc/guix/channels.scm', '--disable-authentication'],
+    ['guix', 'pull', '--channels=/mnt/etc/guix/channels.scm'],
 ]
 
 CMD_INSTALL_PULL_HASH = [
@@ -92,7 +92,7 @@ CMD_INSTALL_PULL_HASH = [
 ]
 
 CMD_INSTALL = [
-    ['guix', 'system', 'init', '/mnt/etc/system.scm', '/mnt', "--substitute-urls='https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://packages.pantherx.org'"]
+    ['guix', 'system', 'init', '/mnt/etc/system.scm', '/mnt', "--substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org https://packages.pantherx.org https://substitutes.nonguix.org'"]
 ]
 
 

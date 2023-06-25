@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 HERE = pathlib.Path(__file__).parent
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 PACKAGE_NAME = 'px-install'
 AUTHOR = 'Franz Geffke'
 AUTHOR_EMAIL = 'franz@pantherx.org'
@@ -40,7 +40,8 @@ setup(
     package_data={
         "": [
             'templates/channels.scm',
-            'keys/packages.pantherx.org.pub'
+            'keys/packages.pantherx.org.pub',
+            'keys/substitutes.nonguix.org.pub'
         ]
     },
     entry_points={

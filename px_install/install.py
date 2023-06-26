@@ -89,10 +89,14 @@ CMD_INSTALL_PULL = [
 
 CMD_INSTALL_PULL_HASH = [
     ['hash', 'guix'],
+    ['GUIX_PROFILE="$HOME/.config/guix/current"', '&&', '. "$GUIX_PROFILE/etc/profile"'],
 ]
 
 CMD_INSTALL = [
-    ['guix', 'system', 'init', '/mnt/etc/system.scm', '/mnt', "--substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org https://packages.pantherx.org https://substitutes.nonguix.org'"]
+    [
+        'GUIX_PROFILE="$HOME/.config/guix/current"', '&&', '. "$GUIX_PROFILE/etc/profile"', '&&', 'hash', 'guix', '&&'
+        'guix', 'system', 'init', '/mnt/etc/system.scm', '/mnt', "--substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org https://packages.pantherx.org https://substitutes.nonguix.org'"
+    ]
 ]
 
 

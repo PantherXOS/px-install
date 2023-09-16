@@ -139,7 +139,7 @@ def _users(config: SystemConfiguration):
                 (group "users")
                 ;; Important: Change with 'passwd {config.username}' after first login
                 (password (crypt "{config.password}" "$6$abc"))
-		
+
                 ;; Adding the account to the "wheel" group
                 ;; makes it a sudoer.  Adding it to "audio"
                 ;; and "video" allows the user to play sound
@@ -154,7 +154,7 @@ def _packages(config: SystemConfiguration):
     identifier = 'px-core-packages'
     if config.type == 'DESKTOP':
         identifier = 'px-desktop-packages'
-        if config.variant == 'XFCE' or config.variant == 'MATE':
+        if config.variant == 'XFCE' or config.variant == 'MATE' or config.variant == 'GNOME':
             identifier = 'px-desktop-packages-gtk'
     elif config.type == 'SERVER':
         identifier = 'px-server-packages'

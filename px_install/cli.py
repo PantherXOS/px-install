@@ -5,6 +5,7 @@ import logging
 import sys
 import time
 
+from .defaults import DEFAULT_VARIANT
 from .block_devices import (get_block_device_by_name, get_block_devices,
                             get_largest_valid_block_device,
                             print_block_devices)
@@ -35,7 +36,7 @@ def get_cl_arguments():
 
 	# TODO: Replace with: default_system_configuration()
     type = ''
-    variant = 'DEFAULT' 
+    variant = DEFAULT_VARIANT
     firmware = check_efi_or_bios()
     hostname = ''
     timezone = ''
@@ -131,7 +132,7 @@ Address: {}
         print()
         if type == 'DESKTOP':
             print()
-            variant = input("Type of desktop: 'DEFAULT', 'MATE', 'XFCE', 'GNOME'. ['DEFAULT']: ") or 'DEFAULT'
+            variant = input(f"Type of desktop: 'DEFAULT', 'MATE', 'XFCE', 'GNOME'. ['{DEFAULT_VARIANT}']: ") or DEFAULT_VARIANT
             print("-> Selected {}".format(variant))
             print()
         print("Your system appears to support {}. Overwrite?".format(firmware.upper()))
@@ -197,7 +198,7 @@ Address: {}
                             choices=['MINIMAL', 'DESKTOP', 'SERVER', 'ENTERPRISE'],
                             help="Installation type."
                             )
-        parser.add_argument("-v", "--variant", type=str, default="DEFAULT",
+        parser.add_argument("-v", "--variant", type=str, default=DEFAULT_VARIANT,
                             choices=['DEFAULT', 'MATE', 'XFCE', 'GNOME'],
                             help="Desktop variant."
                             )
@@ -289,7 +290,7 @@ Address: {}
     if enterprise_config:
         config = SystemConfiguration(
             type=enterprise_config.type,
-            variant='DEFAULT',
+            variant=DEFAULT_VARIANT,
             firmware=firmware.lower(),
             hostname=hostname,
             timezone=enterprise_config.timezone,

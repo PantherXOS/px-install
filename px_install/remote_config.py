@@ -24,6 +24,9 @@ def read_json_config(path: str = '/root/config/config.json'):
         file_content = reader.read()
         content_dict = json.loads(file_content)
 
+    '''May not be defined // TODO: remove this when all configs are updated'''
+    key_type = 'key_type' in content_dict and content_dict['key_type'] or 'RSA:2048'
+
     config = RemoteConfig(
         type=content_dict['type'],
         timezone=content_dict['timezone'],
@@ -32,7 +35,7 @@ def read_json_config(path: str = '/root/config/config.json'):
         location=content_dict['location'],
         role=content_dict['role'],
         key_security=content_dict['key_security'],
-        key_type=content_dict['key_type'],
+        key_type=key_type,
         domain=content_dict['domain'],
         host=content_dict['host']
     )

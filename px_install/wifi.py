@@ -191,11 +191,8 @@ def has_valid_wifi_interface():
 		print('(2) Your Wi-Fi interface is not supported out of the box')
 		print('=> If anyhow possible, install with a LAN cable.')
 		print()
-		print('Consult https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
-		print('To get help, visit https://community.pantherx.org/')
-		print()
-		print_debug_qr_code('https://community.pantherx.org/t/pantherx-installation-get-wi-fi-to-work-connect-to-the-internet/72')
-		print('Scan to open: https://community.pantherx.org/t/pantherx-installation-get-wi-fi-to-work-connect-to-the-internet/72')
+		print_debug_qr_code('https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
+		print('Scan to open: https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
 		return False
 
 

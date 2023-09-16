@@ -127,13 +127,6 @@ def reader(pipe, queue, silent):
 
 
 def _run_command_process(command_string: str, silent=False, support_user_input=False, print_stats=False):
-    '''
-        Stats:
-            print_stats = True
-            silent = False
-    '''
-
-    # Where the user needs to interact with the CLI
     if support_user_input:
         result = subprocess.run(command_string, shell=True,)
         if result.returncode != 0:
@@ -141,56 +134,42 @@ def _run_command_process(command_string: str, silent=False, support_user_input=F
         else:
             return {'result': result.stdout, 'error': None}
     else:
-        process = Popen(command_string, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
+        with Popen(command_string, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True) as process:
+            with multiprocessing.Manager() as manager:
+                stdout_queue = manager.Queue()
+                stderr_queue = manager.Queue()
 
-        # We use multiprocessing.Manager to create a Queue that can be shared between processes
-        with multiprocessing.Manager() as manager:
-            stdout_queue = manager.Queue()
-            stderr_queue = manager.Queue()
+                stdout_process = multiprocessing.Process(target=reader, args=[process.stdout, stdout_queue, silent])
+                stderr_process = multiprocessing.Process(target=reader, args=[process.stderr, stderr_queue, silent])
 
-            # Start a separate process to read stdout and stderr.
-            stdout_process = multiprocessing.Process(target=reader, args=[process.stdout, stdout_queue, silent])
-            stderr_process = multiprocessing.Process(target=reader, args=[process.stderr, stderr_queue, silent])
+                stdout_process.start()
+                stderr_process.start()
 
-            stdout_process.start()
-            stderr_process.start()
+                stdout_process.join()
+                stderr_process.join()
 
-            # monitor = None
-            # if print_stats and silent:
-            #     monitor = ResourceMonitorThread(process)
-            #     monitor.start()
+                stdout_lines = []
+                while not stdout_queue.empty():
+                    stdout_lines.append(stdout_queue.get())
+                stderr_lines = []
+                while not stderr_queue.empty():
+                    stderr_lines.append(stderr_queue.get())
 
-            stdout_process.join()
-            stderr_process.join()
-
-            # if monitor is not None:
-            #     monitor.stop()
-
-            # Now, stdout and stderr are available immediately.
-            stdout_lines = []
-            while not stdout_queue.empty():
-                stdout_lines.append(stdout_queue.get())
-            stderr_lines = []
-            while not stderr_queue.empty():
-                stderr_lines.append(stderr_queue.get())
-
-            process.wait()
+                process.wait()
 
             output = "".join(stdout_lines)
             error = "".join(stderr_lines)
-            error_message = 'Command exited with error code: {}.'.format(process.returncode)
+            error_message = f'Command exited with error code: {process.returncode}.'
 
-            # Handle error conditions
             if process.returncode != 0:
-                if error:  # If stderr is not empty, return that
+                if error:
                     return {'result': None, 'error': error}
-                else:  # Else return 'Command exited with error code: {}.'.format(p.returncode)
+                else:
                     return {'result': None, 'error': error_message}
 
-            # Handle normal output
-            if output:  # If stdout, return
+            if output:
                 return {'result': output, 'error': None}
-            else:  # Else None
+            else:
                 return {'result': None, 'error': None}
 
 
@@ -276,6 +255,9 @@ def convert_size_string(value: str):
     elif 'K' in value:
         clean = value[:-1]
         size = float(clean) / 1000
+    elif 'B' in value:
+        clean = value[:-1]
+        size = float(clean) / 1000000
     else:
         raise ValueError('Could not convert {} to a number.'.format(value))
     return size
@@ -378,9 +360,6 @@ def online_check():
         print()
         print('######## ERROR ########')
         print('Your system does not appear to have an active internet connection.')
-        print()
-        print('Consult https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
-        print('To get help, visit https://community.pantherx.org/')
         print()
         print_debug_qr_code('https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')
         print('Scan to open: https://wiki.pantherx.org/Installation-guide/#connect-to-the-internet')

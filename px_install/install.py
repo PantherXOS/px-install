@@ -3,8 +3,9 @@
 import time
 from typing import List
 
-from px_install.block_devices import get_block_devices, get_largest_valid_block_device
-from px_install.system_substitutes import authorize_substitute_server, write_system_substitutes_key
+from .block_devices import get_block_devices, get_largest_valid_block_device
+from .defaults import DEFAULT_LOCALE, DEFAULT_VARIANT
+from .system_substitutes import authorize_substitute_server, write_system_substitutes_key
 from .classes import BlockDevice, SystemConfiguration
 from .remote_config import (copy_enterprise_channels, copy_enterprise_json_config,
                             copy_enterprise_system_config)
@@ -193,11 +194,11 @@ def default_system_configuration() -> SystemConfiguration:
         raise ValueError('No valid block device found.')
     return SystemConfiguration(
         type="DESKTOP",
-        variant="DEFAULT",
+        variant=DEFAULT_VARIANT,
         firmware=check_efi_or_bios(),
         hostname=random_hostname('pantherx', 6),
         timezone="Europe/Berlin",
-        locale="en_US.utf8",
+        locale=DEFAULT_LOCALE,
         username="panther",
         password="pantherx",
         public_key="NONE",

@@ -5,8 +5,16 @@ import unittest
 channels_dir = '/tmp/px_install_test_system_channels'
 channels_path = '{}/channels.scm'.format(channels_dir)
 
+def cleanup():
+    if os.path.isfile(channels_path):
+        os.remove(channels_path)
+    if os.path.isdir(channels_dir):
+        os.removedirs(channels_dir)
+
 class TestSystemChannels(unittest.TestCase):
     def test_write_system_channels(self):
+        cleanup()
+    
         os.makedirs(channels_dir)
         write_system_channels(channels_path)
 
@@ -17,10 +25,9 @@ class TestSystemChannels(unittest.TestCase):
         channels_file.close()
         found = False
         for line in channels_file_list:
-            if str('(url "https://channels.pantherx.org/git/pantherx.git")') in line:
+            if str('(url "https://channels.pantherx.org/git/panther.git")') in line:
                 found = True
                 
         self.assertTrue(found)
 
-        os.remove(channels_path)
-        os.removedirs(channels_dir)
+        cleanup()

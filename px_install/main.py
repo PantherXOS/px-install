@@ -14,7 +14,6 @@ def main():
     print('Welcome to PantherX Installation v{}'.format(version))
     print()
     print('For guidance, consult: https://wiki.pantherx.org/Installation-guide')
-    print('For help, visit https://community.pantherx.org')
     print('------')
 
     input_args = get_cl_arguments()
@@ -31,7 +30,6 @@ def main():
         print()
         generate_and_print_debug_info(input_args['config'], version, str(err))
         print()
-        print('To get help, visit https://community.pantherx.org/')
         print('Scan the QR code, to easily share your setup-related information.')
 
 

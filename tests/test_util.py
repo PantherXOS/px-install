@@ -71,12 +71,18 @@ class TestUtil(unittest.TestCase):
         result = convert_size_string(value)
         self.assertEqual(result, 549)
 
+    def test_convert_size_string_0byte(self):
+        value = '0B'
+        result = convert_size_string(value)
+        self.assertEqual(result, 0)
+
     def test_get_block_devices(self):
         process_result = '''{\n   "blockdevices": [\n      {"name":"sda", "maj:min":"8:0", "rm":false, "size":"1.8T", "ro":false, "type":"disk", "mountpoint":null},\n      {"name":"nvme0n1", "maj:min":"259:0", "rm":false, "size":"953.9G", "ro":false, "type":"disk", "mountpoint":null,\n         "children": [\n            {"name":"nvme0n1p1", "maj:min":"259:1", "rm":false, "size":"549M", "ro":false, "type":"part", "mountpoint":"/boot/efi"},\n            {"name":"nvme0n1p2", "maj:min":"259:2", "rm":false, "size":"953.3G", "ro":false, "type":"part", "mountpoint":null,\n               "children": [\n                  {"name":"cryptroot", "maj:min":"253:0", "rm":false, "size":"953.3G", "ro":false, "type":"crypt", "mountpoint":"/"}\n               ]\n            }\n         ]\n      }\n   ]\n}\n'''
         expected = [
             BlockDevice(type='disk', name='sda', size=1800000.0),
-            BlockDevice(type='disk', name='nvme0n1', size=953900.0, partitions=[BlockDevicePartition(type='part', name='nvme0n1p1', size=549.0), BlockDevicePartition(type='part', name='nvme0n1p2', size=953300.0)])
+            BlockDevice(type='disk', name='nvme0n1', size=953900.0, partitions=[BlockDevicePartition(type='part', name='nvme0n1p1', size=549.0, uuid='', path=None), BlockDevicePartition(type='part', name='nvme0n1p2', size=953300.0, uuid='', path=None)])
         ]
+
         result = get_block_devices(process_result)
         self.assertEqual(result, expected)
 
@@ -94,10 +100,10 @@ class TestUtil(unittest.TestCase):
    ]
 }'''
         expected = [
-            BlockDevice(type='disk', name='sda', size=32000.0, partitions=[BlockDevicePartition(type='part', name='sda1', size=9.0), BlockDevicePartition(type='part', name='sda2', size=31700.0)])
+            BlockDevice(type='disk', name='sda', size=32000.0, partitions=[BlockDevicePartition(type='part', name='sda1', size=9.0, uuid='', path=None), BlockDevicePartition(type='part', name='sda2', size=31700.0, uuid='', path=None)])
         ]
         result = get_block_devices(process_result)
-        self.maxDiff = None
+
         self.assertEqual(result, expected)
 
     def test_get_largest_valid_block_device(self):

@@ -147,7 +147,7 @@ EOL
 write_server_config
 sed -i "s/<ACCENT>/\`/" $CONFIG
 
-guix pull --disable-authentication --channels=/etc/guix/channels.scm
+guix pull --channels=/etc/guix/channels.scm
 
 hash guix
 guix system reconfigure $CONFIG

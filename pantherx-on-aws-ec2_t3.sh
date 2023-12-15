@@ -73,11 +73,20 @@ mkdir -p /usr/local/share/info
 cd /usr/local/share/info
 for i in /var/guix/profiles/per-user/root/current-guix/share/info/*; do
     ln -s $i; done
+cat <<EOT >> ~root/.config/guix/current/share/guix/bordeaux.guix.gnu.pub
+(public-key
+ (ecc
+  (curve Ed25519)
+  (q #7D602902D3A2DBB83F8A0FB98602A754C5493B0B778C8D1DD4E0F41DE14DE34F#)
+  )
+ )
+EOT
 guix archive --authorize < ~root/.config/guix/current/share/guix/ci.guix.gnu.org.pub
+guix archive --authorize < ~root/.config/guix/current/share/guix/bordeaux.guix.gnu.pub
 # guix pull
-guix package -i glibc-utf8-locales
+guix package -i glibc-utf8-locales --substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org'
 export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
-guix package -i openssl
+guix package -i openssl --substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org'
 
 function write_server_config() {
 cat >> $CONFIG <<EOL
@@ -155,18 +164,18 @@ write_system_channels
 # guix pull --disable-authentication --channels=/etc/channels.scm
 # hash guix
 
-guix system build /etc/bootstrap-config.scm
+guix system build /etc/bootstrap-config.scm --substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org'
 # these appear to be the necessary on Ubuntu 21.04
 mv /etc/ssl /etc/bk_ssl
 mv /etc/pam.d /etc/bk_pam.d
 mv /etc/skel /etc/bk_skel
 
-guix system reconfigure /etc/bootstrap-config.scm
+guix system reconfigure /etc/bootstrap-config.scm --substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org'
 mv /etc /old-etc
 mkdir /etc
 cp -r /old-etc/{passwd,group,shadow,gshadow,mtab,guix,bootstrap-config.scm} /etc/
 cp /old-etc/channels.scm /etc/guix/channels.scm
-guix system reconfigure /etc/bootstrap-config.scm
+guix system reconfigure /etc/bootstrap-config.scm --substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org'
 
 echo "We are done here."
 echo $HOSTNAME

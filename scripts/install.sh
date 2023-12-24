@@ -113,7 +113,7 @@ cat >> $CONFIG <<EOL
 
   ;; Globally-activated services.
   (services (cons*
-              (service px-desktop-service-type)
+              (service lxqt-desktop-service-type)
             %px-desktop-services))))
 EOL
 }
@@ -240,7 +240,7 @@ cat >> $CONFIG <<EOL
 
   ;; Globally-activated services.
   (services (cons*
-              (service px-desktop-service-type)
+              (service lxqt-desktop-service-type)
             %px-desktop-services))))
 EOL
 }
@@ -312,18 +312,16 @@ function write_system_channels() {
 cat >> $CHANNELS <<EOL
 ;; PantherX Default Channels
 
-(list (channel
-        (name 'guix)
-        (url "https://channels.pantherx.org/git/pantherx.git")
-        (branch "rolling"))
-      (channel
-        (name 'nongnu)
-        (url "https://channels.pantherx.org/git/nongnu.git")
-        (branch "rolling"))
-      (channel
+(cons* (channel
         (name 'pantherx)
-        (url "https://channels.pantherx.org/git/pantherx-extra.git")
-        (branch "rolling")))
+        (branch "master")
+        (url "https://channels.pantherx.org/git/panther.git")
+         (introduction
+          (make-channel-introduction
+           "54b4056ac571611892c743b65f4c47dc298c49da"
+           (openpgp-fingerprint
+            "A36A D41E ECC7 A871 1003  5D24 524F EB1A 9D33 C9CB"))))
+       %default-channels)
 EOL
 }
 
@@ -366,7 +364,7 @@ function CMD_CREATE_SWAP() {
 }
 
 function CMD_INSTALL() {
-	guix pull --channels=$CHANNELS --disable-authentication
+	guix pull --channels=$CHANNELS
     hash guix
 	guix system init $CONFIG /mnt
 }

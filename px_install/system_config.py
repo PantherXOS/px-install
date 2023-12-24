@@ -184,7 +184,7 @@ def _services(config: SystemConfiguration):
   (services (cons*'''
     
     if config.type == 'DESKTOP':
-        service = '(service px-desktop-service-type)'
+        service = '(service lxqt-desktop-service-type)'
         if config.variant == 'XFCE':
             service = '(service xfce-desktop-service-type)'
         elif config.variant == 'MATE':
@@ -195,7 +195,7 @@ def _services(config: SystemConfiguration):
         content += f'''
               ;; Desktop environment
               ;; Use one or more at the same time
-              ;; (service px-desktop-service-type)
+              ;; (service lxqt-desktop-service-type)
               ;; (service xfce-desktop-service-type)
               ;; (service mate-desktop-service-type)
               ;; (service gnome-desktop-service-type)

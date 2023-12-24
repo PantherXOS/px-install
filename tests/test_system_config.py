@@ -92,7 +92,7 @@ class TestSystemConfig(unittest.TestCase):
   (services (cons*
               ;; Desktop environment
               ;; Use one or more at the same time
-              ;; (service px-desktop-service-type)
+              ;; (service lxqt-desktop-service-type)
               ;; (service xfce-desktop-service-type)
               ;; (service mate-desktop-service-type)
               ;; (service gnome-desktop-service-type)

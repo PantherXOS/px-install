@@ -25,8 +25,7 @@ def _modules(config: SystemConfiguration):
              (gnu system)'''
     
     if config.type == 'DESKTOP':
-        if config.variant != 'DEFAULT':
-            content += '''
+        content += '''
              (gnu services desktop)'''
 
     content += '''

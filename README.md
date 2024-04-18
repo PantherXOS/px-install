@@ -142,7 +142,8 @@ install.format()
 install.mount_partition()
 install.create_swap()
 install.generate_config()
-install.pull()
+# Not necessary as of April 2024
+# install.pull()
 install.install()
 ```
 

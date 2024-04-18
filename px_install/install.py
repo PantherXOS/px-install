@@ -27,7 +27,6 @@ def get_format_system_partition_CMD(part2: str, use_disk_encryption: bool):
         ]
 
 
-
 def get_CMD_FORMAT_BIOS(disk: BlockDevice, use_disk_encryption: bool):
     '''Expect /dev/sda or similiar'''
     part2 = disk.get_partition_dev_name(2)
@@ -93,10 +92,30 @@ CMD_INSTALL_PULL_HASH = [
     ['GUIX_PROFILE="$HOME/.config/guix/current"', '&&', '. "$GUIX_PROFILE/etc/profile"'],
 ]
 
+CMD_INSTALL_POST_PULL = [
+    [
+        'GUIX_PROFILE="$HOME/.config/guix/current"',
+        "&&",
+        '. "$GUIX_PROFILE/etc/profile"',
+        "&&",
+        "hash",
+        "guix",
+        "&&",
+        "guix",
+        "system",
+        "init",
+        "/mnt/etc/system.scm",
+        "/mnt",
+    ]
+]
+
 CMD_INSTALL = [
     [
-        'GUIX_PROFILE="$HOME/.config/guix/current"', '&&', '. "$GUIX_PROFILE/etc/profile"', '&&', 'hash', 'guix', '&&'
-        'guix', 'system', 'init', '/mnt/etc/system.scm', '/mnt', "--substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org https://packages.pantherx.org https://substitutes.nonguix.org'"
+        "guix",
+        "system",
+        "init",
+        "/mnt/etc/system.scm",
+        "/mnt",
     ]
 ]
 
@@ -132,22 +151,13 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
     time.sleep(2)
 
     if is_enterprise_config:
-        print('=> (4) Authorize substitutes from packages.pantherx.org ...')
-        write_system_substitutes_key()
-        time.sleep(1)
-        authorize_substitute_server()
         print('=> (5) Writing enterprise system configuration ...')
         copy_enterprise_system_config()
         copy_enterprise_json_config()
         copy_enterprise_channels()
     else:
-        print('=> (4) Authorize substitutes from packages.pantherx.org ...')
-        write_system_substitutes_key()
-        time.sleep(1)
-        authorize_substitute_server()
         print('=> (5) Writing system configuration ...')
         write_system_config(config)
-        write_system_channels()
 
     # Testing ...
     time.sleep(2)
@@ -156,13 +166,19 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
 
     print('=> (6) Starting installation ...')
     print('Depending on your internet connection speed and system performance, this operation will take 10 to 90 minutes.')
-    print('')
-    print('=> (6.1) Downloading the latest changes ...')
-    run_commands(CMD_INSTALL_PULL, allow_retry=True, print_stats=True)
-    run_commands(CMD_INSTALL_PULL_HASH)
-    print('\nFinished downloading the latest changes.\n')
-    print('=> (6.2) Installing ...')
-    run_commands(CMD_INSTALL, allow_retry=True, print_stats=True)
+
+    if is_enterprise_config:
+        print("")
+        print("=> Downloading the latest changes from enterprise repository...")
+        run_commands(CMD_INSTALL_PULL, allow_retry=True, print_stats=True)
+        run_commands(CMD_INSTALL_PULL_HASH)
+        print("\nFinished downloading the latest changes.\n")
+
+        print("=> (6.1) Installing ...")
+        run_commands(CMD_INSTALL_POST_PULL, allow_retry=True, print_stats=True)
+    else:
+        print("=> (6.1) Installing ...")
+        run_commands(CMD_INSTALL, allow_retry=True, print_stats=True)
 
     print('')
     print("PantherX OS has been installed successfully.")
@@ -209,7 +225,7 @@ def default_system_configuration() -> SystemConfiguration:
 class SystemInstallation():
     config: SystemConfiguration
     is_enterprise_config: bool
-    
+
     step: int = 0
     errors: List
 
@@ -246,7 +262,6 @@ class SystemInstallation():
         else:
             print('=> (4) Writing system configuration ...')
             write_system_config(self.config)
-            write_system_channels()
         self.step = 4
 
     def pull(self):
@@ -259,5 +274,8 @@ class SystemInstallation():
     def install(self):
         '''Sixth step: install system'''
         # TODO: Remove 'capture_output=False'
-        run_commands(CMD_INSTALL, allow_retry=True, print_stats=True)
+        if self.is_enterprise_config:
+            run_commands(CMD_INSTALL_POST_PULL, allow_retry=True, print_stats=True)
+        else:
+            run_commands(CMD_INSTALL, allow_retry=True, print_stats=True)
         self.step = 6

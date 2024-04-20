@@ -5,30 +5,35 @@ from typing import List
 
 from .block_devices import get_block_devices, get_largest_valid_block_device
 from .defaults import DEFAULT_LOCALE, DEFAULT_VARIANT
-from .system_substitutes import authorize_substitute_server, write_system_substitutes_key
 from .classes import BlockDevice, SystemConfiguration
 from .remote_config import (copy_enterprise_channels, copy_enterprise_json_config,
                             copy_enterprise_system_config)
-from .system_channels import write_system_channels
 from .system_config import write_system_config
 from .util import check_efi_or_bios, pre_install_environment_check, random_hostname, run_commands
 
 
 def get_format_system_partition_CMD(part2: str, use_disk_encryption: bool):
+    '''Commands to format the system partition.'''
     if use_disk_encryption:
         return [
             ['cryptsetup', 'luksFormat', part2],
             ['cryptsetup', 'open', '--type', 'luks', part2, 'cryptroot'],
-            ['mkfs.ext4', '-q', '-L', 'my-root', '/dev/mapper/cryptroot']
+            ['mkfs.ext4', '-q', '-L', 'my-root', '/dev/mapper/cryptroot'],
+            ['tune2fs', '-O', '^metadata_csum_seed', '/dev/mapper/cryptroot']
         ]
     else:
         return [
-            ['mkfs.ext4', '-q', '-L', 'my-root', part2]
+            ['mkfs.ext4', '-q', '-L', 'my-root', part2],
+            # https://debbugs.gnu.org/cgi/bugreport.cgi?bug=70480
+            ['tune2fs', '-O', '^metadata_csum_seed', part2]
         ]
 
 
 def get_CMD_FORMAT_BIOS(disk: BlockDevice, use_disk_encryption: bool):
-    '''Expect /dev/sda or similiar'''
+    '''
+    Command to format for BIOS systems.
+    Expect /dev/sda or similiar
+    '''
     part2 = disk.get_partition_dev_name(2)
 
     cmd_format_partition = get_format_system_partition_CMD(part2, use_disk_encryption)
@@ -37,7 +42,7 @@ def get_CMD_FORMAT_BIOS(disk: BlockDevice, use_disk_encryption: bool):
             'parted', '-s', disk.dev_name, '--',
             'mklabel', 'gpt',
             'mkpart', 'primary', 'fat32', '0%', '10M',
-            'mkpart', 'primary', '10M', '99%'
+            'mkpart', 'primary', '10M', '100s%'
         ],
         ['parted', disk.dev_name, 'set', '1', 'bios_grub', 'on'],
         *cmd_format_partition
@@ -46,7 +51,10 @@ def get_CMD_FORMAT_BIOS(disk: BlockDevice, use_disk_encryption: bool):
 
 
 def get_CMD_FORMAT_EFI(disk: BlockDevice, use_disk_encryption: bool):
-    '''Expect /dev/sda or similiar'''
+    '''
+    Command to format for EFI systems.
+    Expect /dev/sda or similiar
+    '''
     part1 = disk.get_partition_dev_name(1)
     part2 = disk.get_partition_dev_name(2)
 
@@ -68,7 +76,7 @@ def get_CMD_FORMAT_EFI(disk: BlockDevice, use_disk_encryption: bool):
     ]
     return cmd_format_efi
 
-
+# Command to prepare installation
 CMD_PREP_INSTALL = [
     ['mount', 'LABEL=my-root', '/mnt'],
     ['herd', 'start', 'cow-store', '/mnt'],
@@ -76,6 +84,7 @@ CMD_PREP_INSTALL = [
     ['mkdir', '/mnt/etc/guix']
 ]
 
+# Command to create swap file
 CMD_CREATE_SWAP = [
     ['dd', 'if=/dev/zero', 'of=/mnt/swapfile', 'bs=1MiB', 'count=4096'],
     ['chmod', '600', '/mnt/swapfile'],
@@ -83,40 +92,24 @@ CMD_CREATE_SWAP = [
     ['swapon', '/mnt/swapfile']
 ]
 
+# Command to pull the latest changes from the repository
 CMD_INSTALL_PULL = [
     ['guix', 'pull', '--channels=/mnt/etc/guix/channels.scm'],
 ]
 
-CMD_INSTALL_PULL_HASH = [
-    ['hash', 'guix'],
-    ['GUIX_PROFILE="$HOME/.config/guix/current"', '&&', '. "$GUIX_PROFILE/etc/profile"'],
-]
-
+# Install after pull
 CMD_INSTALL_POST_PULL = [
     [
-        'GUIX_PROFILE="$HOME/.config/guix/current"',
-        "&&",
-        '. "$GUIX_PROFILE/etc/profile"',
-        "&&",
-        "hash",
-        "guix",
-        "&&",
-        "guix",
-        "system",
-        "init",
-        "/mnt/etc/system.scm",
-        "/mnt",
+        'GUIX_PROFILE="$HOME/.config/guix/current"', "&&",
+        '. "$GUIX_PROFILE/etc/profile"', "&&",
+        "hash", "guix", "&&",
+        "guix", "system", "init", "/mnt/etc/system.scm", "/mnt",
     ]
 ]
 
+# Install w/o pull
 CMD_INSTALL = [
-    [
-        "guix",
-        "system",
-        "init",
-        "/mnt/etc/system.scm",
-        "/mnt",
-    ]
+    ["guix", "system", "init", "/mnt/etc/system.scm", "/mnt",]
 ]
 
 
@@ -171,7 +164,6 @@ def installation(config: SystemConfiguration, is_enterprise_config: bool = False
         print("")
         print("=> Downloading the latest changes from enterprise repository...")
         run_commands(CMD_INSTALL_PULL, allow_retry=True, print_stats=True)
-        run_commands(CMD_INSTALL_PULL_HASH)
         print("\nFinished downloading the latest changes.\n")
 
         print("=> (6.1) Installing ...")
@@ -268,7 +260,6 @@ class SystemInstallation():
         '''Fifth step: pull channel data'''
         # TODO: Remove 'capture_output=False'
         run_commands(CMD_INSTALL_PULL, allow_retry=True, print_stats=True)
-        run_commands(CMD_INSTALL_PULL_HASH)
         self.step = 5
 
     def install(self):

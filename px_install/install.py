@@ -42,7 +42,7 @@ def get_CMD_FORMAT_BIOS(disk: BlockDevice, use_disk_encryption: bool):
             'parted', '-s', disk.dev_name, '--',
             'mklabel', 'gpt',
             'mkpart', 'primary', 'fat32', '0%', '10M',
-            'mkpart', 'primary', '10M', '100s%'
+            'mkpart', 'primary', '10M', '100%'
         ],
         ['parted', disk.dev_name, 'set', '1', 'bios_grub', 'on'],
         *cmd_format_partition

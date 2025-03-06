@@ -25,37 +25,30 @@ def _modules(config: SystemConfiguration):
              (gnu system)'''
     
     if config.type == 'DESKTOP':
-        content += '''
+            content += '''
              (gnu services desktop)'''
 
     content += '''
-             (px system config))'''
+             (px system panther))'''
     
     if config.public_key != 'NONE':
-        content += '''
+        content += f'''
 
-(use-service-modules ssh)'''
+(use-service-modules ssh)
+
+(define %ssh-public-key
+  "{config.public_key}")'''
     
     return content
 
 
-def _public_key(config: SystemConfiguration):
-    if config.public_key == 'NONE':
-        return ''
-    else:
-        return f'''
-(define %ssh-public-key
-  "{config.public_key}")
-'''
-
-
 def _type(type):
     if type == 'MINIMAL':
-        return 'px-core-os'
+        return '%panther-os'
     elif type == 'DESKTOP':
-        return 'px-desktop-os'
+        return '%panther-desktop-os'
     elif type == 'SERVER':
-        return 'px-server-os'
+        return '%panther-os'
     else:
         raise ValueError('Unknown type: {}'.format(type))
 
@@ -90,19 +83,6 @@ def _mapped_devices(config: SystemConfiguration):
            (uuid "{config.disk.get_partition_uuid(2)}"))
           (target "cryptroot")
           (type luks-device-mapping))))'''
-
-
-def _options(config: SystemConfiguration):
-    if config.public_key == 'NONE':
-        return ''
-    else:
-        return f'''
-  ;; Open additional ports as needed
-  #:open-ports '(("tcp" "ssh"))
-
-  ;; Public key for root login
-  ;; Change username (root) as required; for ex. {config.username}
-  #:authorized-keys `(("root" ,(plain-file "panther.pub" %ssh-public-key))'''
 
 
 def _file_systems(config: SystemConfiguration):
@@ -150,31 +130,31 @@ def _users(config: SystemConfiguration):
 
 
 def _packages(config: SystemConfiguration):
-    identifier = 'px-core-packages'
+    identifier = '%panther-base-packages'
     if config.type == 'DESKTOP':
-        identifier = 'px-desktop-packages'
-        if config.variant == 'XFCE' or config.variant == 'MATE' or config.variant == 'GNOME':
-            identifier = 'px-desktop-packages-gtk'
+        identifier = '%panther-desktop-packages'
+        if config.variant == 'XFCE' or config.variant == 'MATE':
+            identifier = '%panther-desktop-packages'
     elif config.type == 'SERVER':
-        identifier = 'px-server-packages'
+        identifier = '%panther-base-packages'
     elif config.type == 'MINIMAL':
-        identifier = 'px-core-packages'
+        identifier = '%panther-base-packages'
     else:
         raise ValueError('Unknown type: {}'.format(config.type))
     return f'''
   ;; Globally-installed packages
   (packages (cons*
-             %{identifier}))'''
+             {identifier}))'''
 
 
 def _services(config: SystemConfiguration):
-    identifier = 'px-core-services'
+    identifier = '%panther-base-services'
     if config.type == 'DESKTOP':
-        identifier = 'px-desktop-services'
+        identifier = '%panther-desktop-services'
     elif config.type == 'SERVER':
-        identifier = 'px-server-services'
+        identifier = '%panther-base-services'
     elif config.type == 'MINIMAL':
-        identifier = 'px-core-services'
+        identifier = '%panther-base-services'
     else:
         raise ValueError('Unknown type: {}'.format(config.type))
     
@@ -193,41 +173,38 @@ def _services(config: SystemConfiguration):
 
         content += f'''
               ;; Desktop environment
-              ;; Use one or more at the same time
-              ;; (service lxqt-desktop-service-type)
-              ;; (service xfce-desktop-service-type)
-              ;; (service mate-desktop-service-type)
-              ;; (service gnome-desktop-service-type)
               {service}'''
+              
+    if config.public_key != 'NONE':
+        
+        content += f'''
+             (service openssh-service-type
+                      (openssh-configuration
+                       (permit-root-login 'prohibit-password)
+                       (authorized-keys
+                        `(("root" ,(plain-file "{config.username}.pub" %ssh-public-key))))))'''
 
     content += f'''
-             %{identifier}))'''
+             {identifier}))'''
     
     return content
 
 
 def operating_system_config(config: SystemConfiguration):
     return f''';; PantherX OS Configuration
-;;
-;; Update: px update apply
-;; Apply changes: guix system reconfigure /etc/system.scm
 
 {_modules(config)}
-{_public_key(config)}
-({_type(config.type)}
- (operating-system
-  (host-name "{config.hostname}")
-  (timezone "{config.timezone}")
-  (locale "{config.locale}")
-  {_bootloader(config.firmware, config.disk.dev_name)}
-  {_file_systems(config)}
 
-  (swap-devices '("/swapfile"))
-  {_users(config)}
-  {_packages(config)}
-  {_services(config)}
- )
-  {_options(config)}   
+(operating-system
+ (inherit {_type(config.type)})
+ (host-name "{config.hostname}")
+ (timezone "{config.timezone}")
+ (locale "{config.locale}")
+{_bootloader(config.firmware, config.disk.dev_name)}
+{_file_systems(config)}
+{_users(config)}
+{_packages(config)}
+{_services(config)}
 )'''
 
 

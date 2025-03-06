@@ -3,12 +3,6 @@
 # Author: Franz Geffke <franz@pantherx.org>
 # Version: 0.0.9
 
-# GitLab provided templates
-include:
-  # - template: SAST.gitlab-ci.yml
-  # - template: Code-Quality.gitlab-ci.yml
-  - template: License-Scanning.gitlab-ci.yml
-
 # Git submodules
 variables:
   GIT_SUBMODULE_STRATEGY: recursive

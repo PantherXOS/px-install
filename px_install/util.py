@@ -9,10 +9,7 @@ import subprocess
 import sys
 import threading
 import time
-import multiprocessing
 from subprocess import Popen, PIPE
-
-import psutil
 
 import cpuinfo
 import qrcode
@@ -82,48 +79,15 @@ def list_of_commands_to_string(command: list):
 
 
 def decode_return_value(value: bytes):
-	try:
-		result = value.decode()
-		if value != '':
-			return result
-	except:
-		if value != '':
-			return value
-	
-	return None
+    try:
+        result = value.decode()
+        if value != "":
+            return result
+    except:
+        if value != "":
+            return value
 
-
-# class ResourceMonitorThread(threading.Thread):
-#     def __init__(self, process):
-#         super(ResourceMonitorThread, self).__init__()
-#         self.process = process
-#         self.old_value = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
-#         self.running = False
-
-#     def run(self):
-#         self.running = True
-#         while self.running:
-#             new_value = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
-#             upload_download_speed = round((new_value - self.old_value) / (1024 * 1024), 2)  # convert bytes to megabytes
-#             self.old_value = new_value
-#             sys.stdout.write(
-#                 f"\rCPU Usage: {psutil.cpu_percent()}%, Memory Usage: {psutil.virtual_memory().percent}%, Network Speed: {upload_download_speed} MB/s")
-#             sys.stdout.flush()
-#             time.sleep(1)  # pause for a second before checking again
-#         print()  # to ensure next print starts on a new line
-
-#     def stop(self):
-#         self.running = False
-
-
-def reader(pipe, queue, silent):
-    while True:
-        line = pipe.readline()
-        if line == '':
-            break
-        if not silent:
-            print(line, end='')
-        queue.put(line)
+    return None
 
 
 def _run_command_process(command_string: str, silent=False, support_user_input=False, print_stats=False):
@@ -135,27 +99,35 @@ def _run_command_process(command_string: str, silent=False, support_user_input=F
             return {'result': result.stdout, 'error': None}
     else:
         with Popen(command_string, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True) as process:
-            with multiprocessing.Manager() as manager:
-                stdout_queue = manager.Queue()
-                stderr_queue = manager.Queue()
+            # Use threading instead of multiprocessing to avoid Manager().Queue() issues
 
-                stdout_process = multiprocessing.Process(target=reader, args=[process.stdout, stdout_queue, silent])
-                stderr_process = multiprocessing.Process(target=reader, args=[process.stderr, stderr_queue, silent])
+            stdout_lines = []
+            stderr_lines = []
 
-                stdout_process.start()
-                stderr_process.start()
+            def read_stdout():
+                for line in iter(process.stdout.readline, ""):
+                    if not silent:
+                        print(line, end="")
+                    stdout_lines.append(line)
+                process.stdout.close()
 
-                stdout_process.join()
-                stderr_process.join()
+            def read_stderr():
+                for line in iter(process.stderr.readline, ""):
+                    if not silent:
+                        print(line, end="")
+                    stderr_lines.append(line)
+                process.stderr.close()
 
-                stdout_lines = []
-                while not stdout_queue.empty():
-                    stdout_lines.append(stdout_queue.get())
-                stderr_lines = []
-                while not stderr_queue.empty():
-                    stderr_lines.append(stderr_queue.get())
+            stdout_thread = threading.Thread(target=read_stdout)
+            stderr_thread = threading.Thread(target=read_stderr)
 
-                process.wait()
+            stdout_thread.start()
+            stderr_thread.start()
+
+            stdout_thread.join()
+            stderr_thread.join()
+
+            process.wait()
 
             output = "".join(stdout_lines)
             error = "".join(stderr_lines)

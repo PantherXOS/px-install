@@ -86,27 +86,57 @@ def _mapped_devices(config: SystemConfiguration):
 
 
 def _file_systems(config: SystemConfiguration):
-    if config.use_disk_encryption:
-        return f'''{_mapped_devices(config)}
+    if config.use_disk_encryption and config.firmware == "bios":
+        # BIOS + disk encryption
+        return f"""{_mapped_devices(config)}
 
-  (file-systems (append
-                 (list (file-system
-                        (device "/dev/mapper/cryptroot")
-                        (mount-point "/")
-                        (type "ext4")
-                        (dependencies mapped-devices))
-                       (file-system
-                        (device (uuid "{config.disk.get_partition_uuid(1)}" 'fat32))
-                        (mount-point "/boot/efi")
-                        (type "vfat")))
-                 %base-file-systems))'''
+  (file-systems
+   (cons
+    (file-system
+             (mount-point "/")
+             (device "/dev/mapper/cryptroot")
+             (type "ext4")
+             (dependencies mapped-devices))
+    %base-file-systems))"""
+    elif config.use_disk_encryption and config.firmware == "efi":
+        # EFI + disk encryption
+        return f"""{_mapped_devices(config)}
+
+  (file-systems 
+   (cons* (file-system
+           (mount-point "/boot/efi")
+           (device (uuid "{config.disk.get_partition_uuid(1)}"
+                         'fat32))
+           (type "vfat"))
+          (file-system
+            (mount-point "/")
+            (device "/dev/mapper/cryptroot")
+            (type "ext4")
+            (dependencies mapped-devices)) 
+           %base-file-systems))"""
+    elif config.firmware == "efi":
+        # EFI without encryption
+        return f"""
+  (file-systems
+   (cons* (file-system
+           (device (file-system-label "my-root"))
+           (mount-point "/")
+           (type "ext4"))
+          (file-system
+           (device "{config.disk.dev_name}1")
+           (mount-point "/boot/efi")
+           (type "vfat"))
+          %base-file-systems))"""
     else:
-        return f'''
-  (file-systems (cons (file-system
-                       (device (file-system-label "my-root"))
-                       (mount-point "/")
-                       (type "ext4"))
-                      %base-file-systems))'''
+        # BIOS without encryption
+        return f"""
+  (file-systems
+   (cons
+    (file-system
+     (device (file-system-label "my-root"))
+     (mount-point "/")
+     (type "ext4"))
+    %base-file-systems))"""
 
 
 def _users(config: SystemConfiguration):

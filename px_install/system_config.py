@@ -123,8 +123,9 @@ def _file_systems(config: SystemConfiguration):
            (mount-point "/")
            (type "ext4"))
           (file-system
-           (device "{config.disk.dev_name}1")
            (mount-point "/boot/efi")
+           (device (uuid "{config.disk.get_partition_uuid(1)}"
+                         'fat32))
            (type "vfat"))
           %base-file-systems))"""
     else:
